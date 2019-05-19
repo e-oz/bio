@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>About OZ</title>
+    <style>
+      .hidden {
+        display: none;
+      }
+    </style>
+    <script>
+      function unhide(id) {
+        document.getElementById(id).classList.remove('hidden');
+      }
+    </script>
+  </head>
+  <body>
+    Hello.<br/>
+    My name is Evgenii.<br/>
+    <br/>
+    I'm a programmer.<br/>
+    My main tools: Rust, TypeScript, Angular, MySQL, Redis.<br/>
+    <br/>
+    <button type="button" onclick="unhide('hireInfo')">If you want to hire me</button>
+    <br/>
+    <div class="hidden" id="hireInfo">
+      <ul>
+        <li>I prefer to write server-side code in Rust (API, tools)</li>
+        <li>I prefer to write client-side code in TypeScript</li>
+        <li>My rate is $130 per hour, not lower</li>
+        <li>I only work remotely</li>
+        <li>I have 4 hours per day for your project</li>
+        <li><a href="https://stackoverflow.com/cv/oz">My resume can be found here</a></li>
+        <li><span>oz</span><span class="hidden">antispam</span><span>&#x00040;</span><span>jamm<span>.</span>dev</span>
+        </li>
+      </ul>
+    </div>
+  </body>
+</html>
