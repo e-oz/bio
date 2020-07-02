@@ -69,8 +69,17 @@
       }
     </style>
     <script>
-      function unhide(id) {
-        document.getElementById(id).classList.remove('hidden');
+      function unhide(id, btnID) {
+        let el = document.getElementById(id);
+        if (el) {
+          el.classList.remove('hidden');
+        }
+        if (btnID) {
+          let btn = document.getElementById(btnID);
+          if (btn) {
+            btn.remove();
+          }
+        }
       }
     </script>
   </head>
@@ -108,7 +117,7 @@
       Enterprise Application Architecture</a>.<br/>
       I like and respect SOLID principles, especially Separation of concerns.<br/>
       <br/>
-      <button class="btn" type="button" onclick="unhide('story')">Story</button>
+      <button class="btn" type="button" onclick="unhide('story','storyBtn')" id="storyBtn">Story</button>
       <div class="hidden pt1" id="story">
         My passion to programming started in school.<br/>
         In 2004 I've started making money by making websites.<br/>
@@ -132,7 +141,7 @@
     <a href="https://www.instagram.com/eugeniyoz/" target="_blank" rel="noopener">Instagram</a><br/>
     <a href="resume.pdf">Résumé PDF file</a><br/>
     <br/>
-    <button class="btn" type="button" onclick="unhide('hireInfo')">If you want to hire me</button>
+    <button class="btn" type="button" onclick="unhide('hireInfo','hibtn')" id="hibtn">If you want to hire me</button>
     <br/>
     <div class="hidden" id="hireInfo">
       <ul>
