@@ -17,6 +17,10 @@
         margin-left: 1.6em;
       }
 
+      .color_blue1 {
+        color: #0027cc;
+      }
+
       a, a:visited {
         color: #0027cc;
       }
@@ -46,6 +50,21 @@
         text-shadow: 0 1px 0 #ffffff;
       }
 
+      .btn.sm, .btn.sm:hover, .btn.sm:active {
+        box-shadow: none;
+        background-color: #ffffff;
+        border-radius: 4px;
+        border: 1px solid #0027cc;
+        display: inline-block;
+        cursor: pointer;
+        color: #09097c;
+        font-family: 'Quattrocento', Arial;
+        font-size: 0.7rem;
+        padding: 0.025rem .2rem;
+        text-decoration: none;
+        text-shadow: none;
+      }
+
       .btn:hover {
         background: linear-gradient(to bottom, #f6f6f6 5%, #ffffff 100%);
         background-color: #f6f6f6;
@@ -54,6 +73,14 @@
       .btn:active {
         position: relative;
         top: 1px;
+      }
+
+      .btn_pressed, .btn_pressed:hover {
+        box-shadow: none;
+        background: linear-gradient(to bottom, #0027cc 5%, #2046ee 100%);
+        background-color: #0027cc;
+        color: #fff;
+        text-shadow: none;
       }
 
       li {
@@ -76,6 +103,10 @@
       .pt1 {
         padding-top: 0.5rem;
       }
+
+      .uls > li {
+        font-size: 1em;
+      }
     </style>
     <script>
       function unhide(id, btnID) {
@@ -97,17 +128,18 @@
     My name is Evgeniy.<br/>
     <br/>
     I'm a programmer.<br/>
-    My main tools: Rust, TypeScript, Angular, Ionic, MySQL, Redis, PostgreSQL.<br/>
     <div class="about">
       <br/>
       <em class="code-motto">Good code solves only existing issues, without extra universality, doesn't contain anti-patterns and covered by tests to be able to evolve.</em><br/>
       <br/>
       <strong>Full-stack programmer.</strong><br/>
       <strong>Rust</strong> - since 2015,<br/>
+      <strong>React</strong> - since 2019,<br/>
       <strong>Angular</strong> - since 2011,<br/>
       <strong>PHP</strong> - since 2004.<br/>
       <br/>
-      <strong>Technologies, apps and services I have experience with:</strong> Rust, TypeScript, JavaScript, PHP; Angular, Ionic, Karma, Protractor, Twitter Bootstrap; MySQL, PostgreSQL, Redis; Cloudflare, Mandrill, PayPal, Stripe, Nexmo; GAE, AWS: EC2, S3,
+      <strong>Technologies, apps and services I have experience with:</strong> Rust, TypeScript, JavaScript, PHP; Angular, Ionic, React, Karma, Protractor, Twitter Bootstrap; MySQL, PostgreSQL, Redis; Cloudflare, Mandrill, PayPal, Stripe, Nexmo; GAE, AWS:
+      EC2, S3,
       Cloudfront, Pipeline, CodeCommit, RDS; Jira, YouTrack, Git, Travis CI; SOA, REST, SOLID...<br/>
       <br/>
       I prefer to solve mathematically-challenging tasks (love to apply math to solve real-world issues).<br/>
@@ -125,16 +157,7 @@
       Enterprise Application Architecture</a>.<br/>
       I like and respect SOLID principles, especially the Separation of Concerns.<br/>
       <br/>
-      <button class="btn" type="button" onclick="unhide('story','storyBtn')" id="storyBtn">Story</button>
-      <div class="hidden pt1" id="story">
-        My passion to programming started in school.<br/>
-        In 2004 I've started making money by making websites.<br/>
-        One of my first tools was FTP-editor - tool to upload, remove and edit files (mostly PHP-scripts). It was designed to be used from a mobile phone (in 2004 not every russian youngster had a computer, so "mobile first" for us was more than
-        motto).<br/>
-        But the most interesting thing about that editor - development of this tool had just 3 computer hours and rest of the code was written using this editor itself (yes, from a mobile phone).<br/>
-        This tool helped dozens of people to create their first web sites (or WAP-sites).<br/>
-        It was challenging but extremely rewarding.
-      </div>
+      <div id="story_btn"></div>
     </div>
     <br/>
     <a href="https://medium.com/@eugeniyoz/restful-api-in-rust-impressions-63250d611d15" target="_blank" rel="noopener" title="RESTful API in Rust, impressions">Article: Rust for the Web</a><br/>
@@ -152,30 +175,47 @@
     <button class="btn" type="button" onclick="unhide('hireInfo','hibtn')" id="hibtn">If you want to hire me</button>
     <div class="hidden" id="hireInfo">
       <ul>
-        <li>I can write code, give consultations, create web/mobile/server apps, optimize DB queries, design API, app structure or whole architecture;</li>
-        <li>I only work remotely - located in Barcelona, can work by hours of any timezone;</li>
-        <li>My resume and work story can be found on <a href="http://www.linkedin.com/in/newmanoz">LinkedIn</a>, or download <a href="resume.pdf">Résumé PDF file</a>;</li>
-        <li>Most easy way to hire me is <a href="https://www.upwork.com/freelancers/~01d95397aacaef6e88" target="_blank" rel="noopener">Upwork</a>, but I don't mind other options;</li>
-        <li>
-          <span><span>oz</span><span class="hidden">antispam</span><span>&#x00040;</span><span>jamm<span>.</span>dev</span></span>
+        <li>I can:
+          <ul class="uls">
+            <li>Design software architecture (I prefer hexagonal architecture pattern)</li>
+            <li>Design DB scheme and naming conventions</li>
+            <li>Create Web-apps (frontend, backend) and mobile-apps</li>
+            <li>Design and create RESTful APIs</li>
+            <li>Give consultations</li>
+            <li>Optimize DB queries</li>
+          </ul>
         </li>
+        <li>I work remotely - located in Barcelona, can work in timezones from GMT-8 to GMT+3;</li>
+        <li>My resume and work story can be found on <a href="http://www.linkedin.com/in/newmanoz">LinkedIn</a>, or download <a href="resume.pdf">Résumé PDF file</a>;</li>
+        <li>The most easy way to hire me is <a href="https://www.upwork.com/freelancers/~01d95397aacaef6e88" target="_blank" rel="noopener">Upwork</a>, but I don't mind other options;</li>
+        <li><span id="reveal_email_2" class="color_blue1"></span></li>
       </ul>
       <h5>Previous employer`s <a href="https://www.upwork.com/freelancers/~01d95397aacaef6e88" target="_blank" rel="noopener">feedback</a>:</h5>
       <div class="feedback">
-        We recently completed an extended project (over 5 years and 9 months) with Evgeniy and are very pleased with his work and highly recommend him. The project expanded into many related projects and went well beyond its initial scope. As the need for different business tools took us in many different directions, Evgeniy was able to handle all of those pivots with great skill and determination.<br/>
+        We recently completed an extended project (over 5 years and 9 months) with Evgeniy and are very pleased with his work and highly recommend him. The project expanded into many related projects and went well beyond its initial scope. As the
+        need for different business tools took us in many different directions, Evgeniy was able to handle all of those pivots with great skill and determination.<br/>
         <br/>
-        He worked on everything from our initial <b>PHP</b>/Phalcon website to mobile app development, building a custom CRM and task management system, internal business operation tools, landing pages, white-label members-only websites and much more.<br/>
+        He worked on everything from our initial <b>PHP</b>/Phalcon website to mobile app development, building a custom CRM and task management system, internal business operation tools, landing pages, white-label members-only websites and much
+        more.<br/>
         <br/>
         He is highly advanced in his abilities to solve business problems with web-based applications and to optimize those systems for high availability and performance.<br/>
         <br/>
-        His approach is full-stack as he can handle everything from server setup, security, front-end development (latest version in <b>Angular</b>), backend development (latest version in <b>Rust</b>), <b>MySQL</b> optimization, OOP coding, unit tests and system documentation.<br/>
+        His approach is full-stack as he can handle everything from server setup, security, front-end development (latest version in <b>Angular</b>), backend development (latest version in <b>Rust</b>), <b>MySQL</b> optimization, OOP coding, unit
+        tests and system documentation.<br/>
         <br/>
         Evgeniy is able to take project requirements, ask good questions, offer suggestions and deliver on whatever portion he is assigned. Working on our projects he also had to be very flexible and was able to change directions as needed.<br/>
         <br/>
         Based on our experience, we consider him one of the top programmers on Upwork and highly recommend him if you need a programmer that can help turn your ideas into working business solutions.<br/>
         <br/>
-        <span>Ben Thole, Expansion LLC.</span>
+        <span>Ben Thole, Expansion LLC.</span>&nbsp;&nbsp;<span id="reveal_email_1" class="color_blue1"></span>
       </div>
     </div>
+
+    <!--    <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>-->
+    <script src="https://unpkg.com/react@16/umd/react.production.min.js" crossorigin></script>
+    <!--    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>-->
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script src="interactive.jsx" type="text/babel"></script>
   </body>
 </html>
