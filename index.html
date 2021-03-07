@@ -1,111 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <title>About OZ</title>
-    <link rel="shortcut icon" href="./favicon.png"/>
-    <link href="https://fonts.googleapis.com/css2?family=Inconsolata&family=Quattrocento&family=Work+Sans:ital,wght@1,300&display=swap" rel="stylesheet">
-    <style>
+<head>
+  <meta charset="UTF-8">
+  <title>About OZ</title>
+  <link rel="shortcut icon" href="./favicon.png"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inconsolata&family=Quattrocento&family=Work+Sans:ital,wght@1,300&display=swap" rel="stylesheet">
+  <style>
       html, body {
-        background-color: #fff;
-        color: #000000;
-        font-family: 'Quattrocento', serif;
-        font-size: 27px;
-        margin-top: 0.7em;
-        margin-right: 1.6em;
-        margin-bottom: 3.141592653589793em;
-        margin-left: 1.6em;
+          background-color: #fff;
+          color: #000000;
+          font-family: 'Quattrocento', serif;
+          font-size: 27px;
+          margin-top: 0.7em;
+          margin-right: 1.6em;
+          margin-bottom: 3.141592653589793em;
+          margin-left: 1.6em;
       }
 
       .color_blue1 {
-        color: #0027cc;
+          color: #0027cc;
       }
 
       a, a:visited {
-        color: #0027cc;
+          color: #0027cc;
       }
 
       .hidden {
-        display: none;
+          display: none;
       }
 
       .code-motto {
-        font-size: 0.7rem;
-        color: #09097c;
+          font-size: 0.7rem;
+          color: #09097c;
       }
 
       .btn {
-        box-shadow: inset 0 1px 0 0 #ffffff;
-        background: linear-gradient(to bottom, #ffffff 5%, #f6f6f6 100%);
-        background-color: #ffffff;
-        border-radius: 6px;
-        border: 1px solid #0027cc;
-        display: inline-block;
-        cursor: pointer;
-        color: #09097c;
-        font-family: 'Quattrocento', Arial;
-        font-size: 0.8rem;
-        padding: 0.2rem .7rem;
-        text-decoration: none;
-        text-shadow: 0 1px 0 #ffffff;
+          box-shadow: inset 0 1px 0 0 #ffffff;
+          background: linear-gradient(to bottom, #ffffff 5%, #f6f6f6 100%);
+          background-color: #ffffff;
+          border-radius: 6px;
+          border: 1px solid #0027cc;
+          display: inline-block;
+          cursor: pointer;
+          color: #09097c;
+          font-family: 'Quattrocento', Arial;
+          font-size: 0.8rem;
+          padding: 0.2rem .7rem;
+          text-decoration: none;
+          text-shadow: 0 1px 0 #ffffff;
       }
 
       .btn.sm, .btn.sm:hover, .btn.sm:active {
-        box-shadow: none;
-        background-color: #ffffff;
-        border-radius: 4px;
-        border: 1px solid #0027cc;
-        display: inline-block;
-        cursor: pointer;
-        color: #09097c;
-        font-family: 'Quattrocento', Arial;
-        font-size: 0.7rem;
-        padding: 0.025rem .2rem;
-        text-decoration: none;
-        text-shadow: none;
+          box-shadow: none;
+          background-color: #ffffff;
+          border-radius: 4px;
+          border: 1px solid #0027cc;
+          display: inline-block;
+          cursor: pointer;
+          color: #09097c;
+          font-family: 'Quattrocento', Arial;
+          font-size: 0.7rem;
+          padding: 0.025rem .2rem;
+          text-decoration: none;
+          text-shadow: none;
       }
 
       .btn:hover {
-        background: linear-gradient(to bottom, #f6f6f6 5%, #ffffff 100%);
-        background-color: #f6f6f6;
+          background: linear-gradient(to bottom, #f6f6f6 5%, #ffffff 100%);
+          background-color: #f6f6f6;
       }
 
       .btn:active {
-        position: relative;
-        top: 1px;
+          position: relative;
+          top: 1px;
       }
 
       .btn_pressed, .btn_pressed:hover {
-        box-shadow: none;
-        background: linear-gradient(to bottom, #0027cc 5%, #2046ee 100%);
-        background-color: #0027cc;
-        color: #fff;
-        text-shadow: none;
+          box-shadow: none;
+          background: linear-gradient(to bottom, #0027cc 5%, #2046ee 100%);
+          background-color: #0027cc;
+          color: #fff;
+          text-shadow: none;
       }
 
       li {
-        font-size: 0.7em;
-        line-height: 1.6em;
-        font-family: 'Inconsolata', Courier;
+          font-size: 0.7em;
+          line-height: 1.6em;
+          font-family: 'Inconsolata', Courier;
       }
 
       .about {
-        font-size: 0.7em;
-        font-family: 'Inconsolata', Courier;
+          font-size: 0.7em;
+          font-family: 'Inconsolata', Courier;
       }
 
       .feedback {
-        font-size: 0.7em;
-        font-family: 'Work Sans', sans-serif;
-        font-weight: 300;
+          font-size: 0.7em;
+          font-family: 'Work Sans', sans-serif;
+          font-weight: 300;
+      }
+
+      .feedback-signature {
+          font-size: 1em;
+          font-family: 'Quattrocento', Arial;
+          font-weight: normal;
+          margin-bottom: 1em;
       }
 
       .pt1 {
-        padding-top: 0.5rem;
+          padding-top: 0.5rem;
       }
 
       .uls > li {
-        font-size: 1em;
+          font-size: 1em;
       }
 
       /*!*Looking for a job:*!*/
@@ -115,127 +122,154 @@
       /*#hireInfo, #hireInfo.hidden {*/
       /*  display: block !important;*/
       /*}*/
-    </style>
-    <script>
-      function unhide(id, btnID) {
-        let el = document.getElementById(id);
-        if (el) {
-          el.classList.remove('hidden');
-        }
-        if (btnID) {
-          let btn = document.getElementById(btnID);
-          if (btn) {
-            btn.remove();
-          }
+  </style>
+  <script>
+    function unhide(id, btnID) {
+      let el = document.getElementById(id);
+      if (el) {
+        el.classList.remove('hidden');
+      }
+      if (btnID) {
+        let btn = document.getElementById(btnID);
+        if (btn) {
+          btn.remove();
         }
       }
-    </script>
-  </head>
-  <body>
-    Hello.<br/>
-    My name is <a href="https://en.wikipedia.org/wiki/Eugene_(given_name)" target="_blank" rel="noopener noreferrer">Yevgeny</a>.<br/>
-    <br/>
-    I'm a programmer.<br/>
-    <div class="about">
-      <br/>
-      <em class="code-motto">Good code solves only existing issues, without extra universality, doesn't contain anti-patterns and covered by tests to be able to evolve.</em><br/>
-      <br/>
-      <strong>Full-stack programmer.</strong><br/>
-      <strong>Rust</strong> - since 2015,<br/>
-      <strong>Angular, Ionic</strong> - since 2011,<br/>
-      <strong>PHP</strong> - since 2004.<br/>
-      <br/>
-      <strong>Technologies, apps and services I have experience with:</strong> Rust, TypeScript, JavaScript, PHP; Angular, Ionic, React (in hobby projects), Karma, Protractor, Twitter Bootstrap; MySQL, PostgreSQL, Redis; Cloudflare, Mandrill, PayPal, Stripe, Nexmo; GAE, AWS:
-      EC2, S3,
-      Cloudfront, Pipeline, CodeCommit, RDS; Jira, YouTrack, Git, Travis CI; SOA, REST, SOLID...<br/>
-      <br/>
-      I prefer to solve mathematically-challenging tasks (love to apply math to solve real-world issues).<br/>
-      I follow best practices and my years of experience to design apps architecture clean, scalable, easy for collaboration and code reuse.<br/><br/>
-      Have a lot of experience with caching (also with mutexes, semaphores, preventing dog-pile and race condition effects, RAII control of resources).<br/><br/>
-      My current achievement is 100% Rust REST API, serving multiple Web and mobile apps (CRM, Task Manager, mobile apps, websites).<br/>
-      Have experience of writing CRM, ERP and WMS for big e-commerce and small startups (PHP, Rust).<br/>
-      <br/>
-      In Angular, I can write directives (components) of any level of complexity - including interactive maps (Angular+D3.js), nested trees, SVG elements and other fancy things.<br/>
-      My components are always reusable. I write e2e and unit tests.<br/>Prefer to write frontend code in TypeScript.<br/><br/>
-      I have experience with Ionic, I've created multiple mobile apps with this framework, including sophisticated WMS (Warehouse Management System), consisting of mobile apps (scanning, instructions, price stickers printing, items movement, delivery
-      scheduling).<br/>
-      <br/>
-      My favorite books are <a target="_blank" rel="noopener noreferrer" href="https://www.oreilly.com/library/view/clean-code/9780136083238/">Clean code</a>, <a target="_blank" rel="noopener noreferrer" href="https://martinfowler.com/books/eaa.html">Patterns of
-      Enterprise Application Architecture</a>.<br/>
-      I like and respect SOLID principles, especially the Separation of Concerns.<br/>
-      <br/>
-      <div id="story_btn"></div>
-    </div>
-    <br/>
-    <a href="https://medium.com/@eugeniyoz/restful-api-in-rust-impressions-63250d611d15" target="_blank" rel="noopener noreferrer" title="RESTful API in Rust, impressions">Article: Rust for the Web</a><br/>
-    <br/>
-    My talk about writing web server in Rust (language - russian):<br/>
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/pYflrrJu9PI" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-    <br/>
-    <a href="https://github.com/e-oz" target="_blank" rel="noopener noreferrer">GitHub</a><br/>
-    <a href="https://www.linkedin.com/in/newmanoz/" target="_blank" rel="noopener noreferrer">LinkedIn</a><br/>
-    <a href="https://www.upwork.com/freelancers/~01d95397aacaef6e88" target="_blank" rel="noopener noreferrer">Upwork</a> (portfolio, feedback)<br/>
-    <a href="https://twitter.com/eugeniyoz" target="_blank" rel="noopener noreferrer">Twitter</a><br/>
-    <a href="https://www.instagram.com/eugeniyoz/" target="_blank" rel="noopener noreferrer">Instagram</a><br/>
-    <a href="resume.pdf">Résumé - PDF file</a><br/>
-    <a href="cv.pdf">CV - PDF file</a><br/>
-    <br/>
-    <button class="btn" type="button" onclick="unhide('hireInfo','hibtn')" id="hibtn">If you want to hire me</button>
-    <div class="hidden" id="hireInfo">
-      <ul>
-        <li>I can:
-          <ul class="uls">
-            <li>Design software architecture (I prefer the <a href="https://en.wikipedia.org/wiki/Hexagonal_architecture_(software)" target="_blank" rel="noopener noreferrer">hexagonal architecture</a> pattern);</li>
-            <li>Design a DB scheme and naming conventions;</li>
-            <li>Create Web apps (frontend, backend), mobile apps, CLI tools, daemons, and libraries;</li>
-            <li>Design and create RESTful APIs;</li>
-            <li>Integrate Stripe or other payment platforms to your app;</li>
-            <li>Give consultations;</li>
-            <li>Optimize DB queries;</li>
-          </ul>
+    }
+  </script>
+</head>
+<body>
+Hello.<br/>
+My name is
+<a href="https://en.wikipedia.org/wiki/Eugene_(given_name)" target="_blank" rel="noopener noreferrer">Yevgeny</a>.<br/>
+<br/>
+I'm a programmer.<br/>
+<div class="about">
+  <br/>
+  <em class="code-motto">Good code solves only existing issues, without extra universality, doesn't contain anti-patterns and covered by tests to be able to evolve.</em><br/>
+  <br/>
+  <strong>Full-stack programmer.</strong><br/>
+  <strong>Rust</strong> - since 2015,<br/>
+  <strong>Angular, Ionic</strong> - since 2011,<br/>
+  <strong>PHP</strong> - since 2004.<br/>
+  <br/>
+  <strong>Technologies, apps and services I have experience with:</strong> Rust, TypeScript, JavaScript, PHP; Angular, Ionic, React (in hobby projects), Karma, Protractor, Twitter Bootstrap; MySQL, PostgreSQL, Redis; Cloudflare, Mandrill, PayPal, Stripe, Nexmo; GAE, AWS:
+  EC2, S3,
+  Cloudfront, Pipeline, CodeCommit, RDS; Jira, YouTrack, Git, Travis CI; SOA, REST, SOLID...<br/>
+  <br/>
+  I prefer to solve mathematically-challenging tasks (love to apply math to solve real-world issues).<br/>
+  I follow best practices and my years of experience to design apps architecture clean, scalable, easy for collaboration and code reuse.<br/><br/>
+  Have a lot of experience with caching (also with mutexes, semaphores, preventing dog-pile and race condition effects, RAII control of resources).<br/><br/>
+  My current achievement is 100% Rust REST API, serving multiple Web and mobile apps (CRM, Task Manager, mobile apps, websites).<br/>
+  Have experience of writing CRM, ERP and WMS for big e-commerce and small startups (PHP, Rust).<br/>
+  <br/>
+  In Angular, I can write directives (components) of any level of complexity - including interactive maps (Angular+D3.js), nested trees, SVG elements and other fancy things.<br/>
+  My components are always reusable. I write e2e and unit tests.<br/>Prefer to write frontend code in TypeScript.<br/><br/>
+  I have experience with Ionic, I've created multiple mobile apps with this framework, including sophisticated WMS (Warehouse Management System), consisting of mobile apps (scanning, instructions, price stickers printing, items movement, delivery
+  scheduling).<br/>
+  <br/>
+  My favorite books are
+  <a target="_blank" rel="noopener noreferrer" href="https://www.oreilly.com/library/view/clean-code/9780136083238/">Clean code</a>,
+  <a target="_blank" rel="noopener noreferrer" href="https://martinfowler.com/books/eaa.html">Patterns of
+    Enterprise Application Architecture</a>.<br/>
+  I like and respect SOLID principles, especially the Separation of Concerns.<br/>
+  <br/>
+  <div id="story_btn"></div>
+</div>
+<br/>
+<a href="https://medium.com/@eugeniyoz/restful-api-in-rust-impressions-63250d611d15" target="_blank" rel="noopener noreferrer" title="RESTful API in Rust, impressions">Article: Rust for the Web</a><br/>
+<br/>
+My talk about writing web server in Rust (language - russian):<br/>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/pYflrrJu9PI" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<br/>
+<a href="https://github.com/e-oz" target="_blank" rel="noopener noreferrer">GitHub</a><br/>
+<a href="https://www.linkedin.com/in/newmanoz/" target="_blank" rel="noopener noreferrer">LinkedIn</a><br/>
+<a href="https://www.upwork.com/freelancers/~01d95397aacaef6e88" target="_blank" rel="noopener noreferrer">Upwork</a> (portfolio, feedback)<br/>
+<a href="https://twitter.com/eugeniyoz" target="_blank" rel="noopener noreferrer">Twitter</a><br/>
+<a href="https://www.instagram.com/eugeniyoz/" target="_blank" rel="noopener noreferrer">Instagram</a><br/>
+<a href="resume.pdf">Résumé - PDF file</a><br/>
+<a href="cv.pdf">CV - PDF file</a><br/>
+<br/>
+<button class="btn" type="button" onclick="unhide('hireInfo','hibtn')" id="hibtn">If you want to hire me</button>
+<div class="hidden" id="hireInfo">
+  <ul>
+    <li>I can:
+      <ul class="uls">
+        <li>Design software architecture (I prefer the
+          <a href="https://en.wikipedia.org/wiki/Hexagonal_architecture_(software)" target="_blank" rel="noopener noreferrer">hexagonal architecture</a> pattern);
         </li>
-        <li>When hired:
-          <ul class="uls">
-            <li>I will not answer "it's impossible" to feature requests;</li>
-            <li>My main motivation is money - while an employer is paying, I'm doing the job;</li>
-            <li>I can say my opinion, I can warn about consequences, but I will not confront - who pays the piper calls the tune;</li>
-            <li>I don't work with rude or arrogant people (and money can't fix it);</li>
-            <li>I will not disappear from a project accidentally (while alive);</li>
-            <li>Work-life balance is a thing - I work 8 hours per day, not more. If a situation is critical - I'm online at any time, but it can't be happening every day.</li>
-          </ul>
-        </li>
-        <li>I work remotely - located in Barcelona, can work in timezones from GMT-8 (PT) to GMT+0;</li>
-        <li>My resume and work story can be found on <a href="http://www.linkedin.com/in/newmanoz">LinkedIn</a>, or download <a href="resume.pdf">Résumé</a>, <a href="cv.pdf">CV</a>;</li>
-        <li>The easiest way to hire me is <a href="https://www.upwork.com/freelancers/~01d95397aacaef6e88" target="_blank" rel="noopener noreferrer">Upwork</a>, but I absolutely don't mind other options;</li>
-        <li><span id="reveal_email_2" class="color_blue1"></span></li>
-        <li><a href="https://calendly.com/e-oz" target="_blank" rel="noopener noreferrer">Schedule a conversation with me</a></li>
+        <li>Design a DB scheme and naming conventions;</li>
+        <li>Create Web apps (frontend, backend), mobile apps, CLI tools, daemons, and libraries;</li>
+        <li>Design and create RESTful APIs;</li>
+        <li>Integrate Stripe or other payment platforms to your app;</li>
+        <li>Give consultations;</li>
+        <li>Optimize DB queries;</li>
       </ul>
-      <h5>Previous employer`s <a href="https://www.upwork.com/freelancers/~01d95397aacaef6e88" target="_blank" rel="noopener noreferrer">feedback</a>:</h5>
-      <div class="feedback">
-        We recently completed an extended project (over 5 years and 9 months) with Evgeniy and are very pleased with his work and highly recommend him. The project expanded into many related projects and went well beyond its initial scope. As the
-        need for different business tools took us in many different directions, Evgeniy was able to handle all of those pivots with great skill and determination.<br/>
-        <br/>
-        He worked on everything from our initial <b>PHP</b>/Phalcon website to mobile app development, building a custom CRM and task management system, internal business operation tools, landing pages, white-label members-only websites and much
-        more.<br/>
-        <br/>
-        He is highly advanced in his abilities to solve business problems with web-based applications and to optimize those systems for high availability and performance.<br/>
-        <br/>
-        His approach is full-stack as he can handle everything from server setup, security, front-end development (latest version in <b>Angular</b>), backend development (latest version in <b>Rust</b>), <b>MySQL</b> optimization, OOP coding, unit
-        tests and system documentation.<br/>
-        <br/>
-        Evgeniy is able to take project requirements, ask good questions, offer suggestions and deliver on whatever portion he is assigned. Working on our projects he also had to be very flexible and was able to change directions as needed.<br/>
-        <br/>
-        Based on our experience, we consider him one of the top programmers on Upwork and highly recommend him if you need a programmer that can help turn your ideas into working business solutions.<br/>
-        <br/>
-        <span>Ben Thole, Expansion LLC.</span>&nbsp;&nbsp;<span id="reveal_email_1" class="color_blue1"></span>
-      </div>
-    </div>
+    </li>
+    <li>When hired:
+      <ul class="uls">
+        <li>I will not answer "it's impossible" to feature requests;</li>
+        <li>My main motivation is money - while an employer is paying, I'm doing the job;</li>
+        <li>I can say my opinion, I can warn about consequences, but I will not confront - who pays the piper calls the tune;</li>
+        <li>I don't work with rude or arrogant people (and money can't fix it);</li>
+        <li>I will not disappear from a project accidentally (while alive);</li>
+        <li>Work-life balance is a thing - I work 8 hours per day, not more. If a situation is critical - I'm online at any time, but it can't be happening every day.</li>
+      </ul>
+    </li>
+    <li>I work remotely - located in Barcelona, can work in timezones from GMT-8 (PT) to GMT+0;</li>
+    <li>My resume and work story can be found on
+      <a href="http://www.linkedin.com/in/newmanoz">LinkedIn</a>, or download
+      <a href="resume.pdf">Résumé</a>,
+      <a href="cv.pdf">CV</a>;
+    </li>
+    <li>The easiest way to hire me is
+      <a href="https://www.upwork.com/freelancers/~01d95397aacaef6e88" target="_blank" rel="noopener noreferrer">Upwork</a>, but I absolutely don't mind other options;
+    </li>
+    <li>
+      <span id="reveal_email_2" class="color_blue1"></span>
+    </li>
+    <li>
+      <a href="https://calendly.com/e-oz" target="_blank" rel="noopener noreferrer">Schedule a conversation with me</a>
+    </li>
+  </ul>
+  <h5>Previous employers
+    <a href="https://www.upwork.com/freelancers/~01d95397aacaef6e88" target="_blank" rel="noopener noreferrer">feedback</a>:
+  </h5>
+  <div class="feedback">
+    <div class="feedback-signature">Yury Tsukerman, Binary10 Services LLP.:</div>
+    Evgeniy is an extremely competent Rust developer. He implemented everything correctly with little management needed - the first drafts were production ready, communication spectacular, estimates precise, and his level of enthusiasm for the Rust language and ecosystem boundless. I'd be glad to work with him again any time.<br/>
+    <br/>
+  </div>
+  <div class="feedback">
+    <div class="feedback-signature">Ben Thole, Expansion LLC.:</div>
+    We recently completed an extended project (over 5 years and 9 months) with Evgeniy and are very pleased with his work and highly recommend him. The project expanded into many related projects and went well beyond its initial scope. As the
+    need for different business tools took us in many different directions, Evgeniy was able to handle all of those pivots with great skill and determination.<br/>
+    <br/>
+    He worked on everything from our initial
+    <b>PHP</b>/Phalcon website to mobile app development, building a custom CRM and task management system, internal business operation tools, landing pages, white-label members-only websites and much
+    more.<br/>
+    <br/>
+    He is highly advanced in his abilities to solve business problems with web-based applications and to optimize those systems for high availability and performance.<br/>
+    <br/>
+    His approach is full-stack as he can handle everything from server setup, security, front-end development (latest version in
+    <b>Angular</b>), backend development (latest version in
+    <b>Rust</b>),
+    <b>MySQL</b> optimization, OOP coding, unit
+    tests and system documentation.<br/>
+    <br/>
+    Evgeniy is able to take project requirements, ask good questions, offer suggestions and deliver on whatever portion he is assigned. Working on our projects he also had to be very flexible and was able to change directions as needed.<br/>
+    <br/>
+    Based on our experience, we consider him one of the top programmers on Upwork and highly recommend him if you need a programmer that can help turn your ideas into working business solutions.<br/>
+    <br/>
+    <span id="reveal_email_1" class="color_blue1"></span>
+  </div>
+</div>
 
-    <!--    <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>-->
-    <script src="https://unpkg.com/react@16/umd/react.production.min.js" crossorigin></script>
-    <!--    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>-->
-    <script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-    <script src="interactive.jsx" type="text/babel"></script>
-  </body>
+<!--    <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>-->
+<script src="https://unpkg.com/react@16/umd/react.production.min.js" crossorigin></script>
+<!--    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>-->
+<script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+<script src="interactive.jsx" type="text/babel"></script>
+</body>
 </html>

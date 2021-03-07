@@ -31,7 +31,10 @@ class RevealEmail extends React.Component {
   constructor(props) {
     super(props);
     this.state = {open: false};
-    this.email = props && props.email && props.email.replace(' at ', '@').replace('_dotcom','.com').replace('_dotdev','.dev'); 
+    this.email = null;
+    if (props && props.email) {
+      this.email = props.email.replace(' at ', '@').replace('_dotcom', '.com').replace('_dotdev', '.dev');
+    }
   }
 
   render() {
