@@ -1,0 +1,152 @@
+const scene = document.querySelector('#scene');
+const canvas = document.querySelector('#scene-canvas');
+const hero = document.querySelector('#hero');
+const dialog = document.querySelector('#scene-dialog');
+const sceneInstruction = dialog.querySelector('.scene-instruction');
+const exploreButton = document.querySelector('#explore-scene');
+const motionButtons = [...document.querySelectorAll('[data-motion-toggle]')];
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+const compactViewport = matchMedia('(max-width: 700px)');
+const finePointer = matchMedia('(any-pointer: fine)');
+let worker;
+let starting = false;
+let failed = false;
+let heroVisible = true;
+let pageVisible = !document.hidden;
+let paused = reducedMotion.matches || Boolean(navigator.connection?.saveData);
+let manualPause = null;
+let pointerFrame;
+let latestPointer = [0, 0];
+let resizeTimer;
+let readinessTimer;
+
+try {
+  const savedPreference = localStorage.getItem('oz-scene-paused');
+  if (savedPreference !== null) manualPause = savedPreference === 'true';
+  if (manualPause !== null && !reducedMotion.matches) paused = manualPause;
+} catch { /* Storage is optional; motion controls also work in restricted browsing modes. */ }
+
+function viewport() {
+  return { width: innerWidth, height: innerHeight, pixelRatio: devicePixelRatio || 1, compact: compactViewport.matches };
+}
+
+function updateMotion() {
+  motionButtons.forEach(button => {
+    button.setAttribute('data-paused', String(paused));
+    button.querySelector('[data-motion-label]').textContent = paused ? 'Play motion' : 'Pause motion';
+    button.querySelector('[data-motion-icon]').textContent = paused ? '▷' : 'Ⅱ';
+  });
+  const running = !paused && pageVisible && (heroVisible || dialog.open);
+  scene.dataset.motion = running && !failed ? 'playing' : 'paused';
+  sceneInstruction.textContent = failed ? 'Enjoy the still view.' : paused ? 'Motion paused. Play motion to explore.' : 'Move your pointer. Follow the current.';
+  worker?.postMessage({ type: 'running', value: running, exploring: dialog.open && finePointer.matches });
+  if (running && !worker && !starting && !failed) startScene();
+}
+
+function useStillScene() {
+  failed = true;
+  starting = false;
+  clearTimeout(readinessTimer);
+  worker?.terminate();
+  worker = undefined;
+  scene.dataset.renderer = 'still';
+  scene.dataset.motion = 'unavailable';
+  sceneInstruction.textContent = 'Enjoy the still view.';
+  motionButtons.forEach(button => { button.hidden = true; });
+}
+
+function startScene() {
+  if (!('Worker' in window) || !canvas.transferControlToOffscreen) { useStillScene(); return; }
+  starting = true;
+  try {
+    worker = new Worker(new URL('./scene-worker.js', import.meta.url), { type: 'module', name: 'pelagic-orbit' });
+    worker.addEventListener('error', useStillScene);
+    worker.addEventListener('message', event => {
+      if (event.data.type === 'ready') {
+        clearTimeout(readinessTimer);
+        starting = false;
+        scene.dataset.renderer = 'worker';
+        updateMotion();
+      }
+      if (event.data.type === 'unavailable') useStillScene();
+    });
+    const offscreen = canvas.transferControlToOffscreen();
+    const poster = scene.querySelector('img');
+    const imageUrl = poster.currentSrc || new URL(compactViewport.matches ? '../assets/pelagic-orbit-mobile.jpg' : '../assets/pelagic-orbit.jpg', import.meta.url).href;
+    worker.postMessage({ type: 'init', canvas: offscreen, viewport: viewport(), imageUrl, running: !paused && pageVisible && (heroVisible || dialog.open), exploring: dialog.open && finePointer.matches }, [offscreen]);
+    readinessTimer = setTimeout(useStillScene, 15_000);
+  } catch { useStillScene(); }
+}
+
+motionButtons.forEach(button => {
+  button.hidden = false;
+  button.addEventListener('click', () => {
+    paused = !paused;
+    manualPause = paused;
+    try { localStorage.setItem('oz-scene-paused', String(paused)); } catch { /* The current visit still retains the preference. */ }
+    updateMotion();
+  });
+});
+
+exploreButton.hidden = false;
+exploreButton.addEventListener('click', () => {
+  dialog.showModal();
+  document.body.classList.add('is-exploring');
+  updateMotion();
+});
+document.querySelector('#close-scene').addEventListener('click', () => { dialog.close(); });
+dialog.addEventListener('close', () => {
+  document.body.classList.remove('is-exploring');
+  updateMotion();
+  exploreButton.focus({ preventScroll: true });
+});
+
+new IntersectionObserver(entries => {
+  heroVisible = entries[0].isIntersecting && entries[0].intersectionRatio > 0.08;
+  updateMotion();
+}, { threshold: [0, 0.08] }).observe(hero);
+
+document.addEventListener('visibilitychange', () => { pageVisible = !document.hidden; updateMotion(); });
+window.addEventListener('pagehide', () => { pageVisible = false; updateMotion(); });
+window.addEventListener('pageshow', () => { pageVisible = !document.hidden; updateMotion(); });
+reducedMotion.addEventListener('change', event => {
+  paused = event.matches || manualPause === true || Boolean(navigator.connection?.saveData);
+  updateMotion();
+});
+finePointer.addEventListener('change', updateMotion);
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => { worker?.postMessage({ type: 'resize', viewport: viewport() }); }, 140);
+}, { passive: true });
+window.addEventListener('pointermove', event => {
+  if (!finePointer.matches || event.pointerType === 'touch' || paused || !worker || (!heroVisible && !dialog.open)) return;
+  latestPointer = [event.clientX / innerWidth * 2 - 1, event.clientY / innerHeight * 2 - 1];
+  if (pointerFrame) return;
+  pointerFrame = requestAnimationFrame(() => {
+    worker?.postMessage({ type: 'pointer', value: latestPointer });
+    pointerFrame = undefined;
+  });
+}, { passive: true });
+document.documentElement.addEventListener('pointerleave', () => {
+  cancelAnimationFrame(pointerFrame);
+  pointerFrame = undefined;
+  latestPointer = [0, 0];
+  worker?.postMessage({ type: 'pointer', value: latestPointer });
+});
+
+document.querySelectorAll('[data-email]').forEach(button => {
+  button.hidden = false;
+  button.addEventListener('click', () => {
+    const email = button.dataset.email.replace(' at ', '@').replace('_dotcom', '.com').replace('_dotdev', '.dev');
+    const link = document.createElement('a');
+    link.href = `mailto:${email}`;
+    link.className = button.className;
+    link.textContent = email;
+    link.dataset.revealed = 'true';
+    if (button.dataset.testId) link.dataset.testId = button.dataset.testId;
+    button.replaceWith(link);
+    link.focus({ preventScroll: true });
+  });
+});
+
+updateMotion();

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Local browser checks — OZ</title>
+  <style>
+    body { margin:0; background:#071419; color:#eef5f2; font:14px system-ui; }
+    header { display:flex; align-items:center; gap:20px; padding:12px 20px; flex-wrap:wrap; }
+    button { padding:10px 16px; cursor:pointer; }
+    iframe { display:block; border:0; width:100%; height:calc(100vh - 150px); }
+    output { display:block; white-space:pre-wrap; font:12px monospace; padding:12px 20px; }
+  </style>
+</head>
+<body>
+  <header><strong>Local rendering and interaction checks</strong><button id="run" disabled>Run checks + five-second frame sample</button><button id="fallback" disabled>Test renderer failure</button><button id="no-js">Test without JavaScript</button></header>
+  <iframe src="../" title="Bio page under test"></iframe>
+  <output id="results" aria-live="polite">Loading the page…</output>
+  <script type="module">
+    const frame = document.querySelector('iframe');
+    const run = document.querySelector('#run');
+    const fallback = document.querySelector('#fallback');
+    const output = document.querySelector('#results');
+    let noJavaScript = false;
+    frame.addEventListener('load', () => {
+      run.disabled = noJavaScript;
+      fallback.disabled = noJavaScript;
+      if (!noJavaScript) { output.textContent = 'Ready.'; return; }
+      const document = frame.contentDocument;
+      const passed = document.querySelector('#scene').dataset.renderer === 'still'
+        && document.querySelector('#scene img').complete
+        && document.querySelector('#explore-scene').hidden
+        && document.querySelector('[data-email]').hidden
+        && document.body.textContent.includes('oz [at] jamm [dot] dev')
+        && document.querySelector('#about').getBoundingClientRect().height > 0;
+      output.textContent = passed ? 'PASS: JavaScript disabled by iframe sandbox. Poster, biography, native story, and readable email fallback remain. Reload this check page to restore scripting.' : 'FAIL: the no-JavaScript fallback is incomplete.';
+    });
+    document.querySelector('#no-js').addEventListener('click', () => {
+      noJavaScript = true;
+      frame.setAttribute('sandbox', 'allow-same-origin');
+      frame.src = '../?javascript=disabled';
+      output.textContent = 'Loading with JavaScript disabled…';
+    });
+    const nextFrame = () => new Promise(resolve => frame.contentWindow.requestAnimationFrame(resolve));
+    const check = (value, message) => { if (!value) throw new Error(message); };
+    run.addEventListener('click', async () => {
+      run.disabled = true;
+      fallback.disabled = true;
+      const document = frame.contentDocument;
+      const window = frame.contentWindow;
+      const scene = document.querySelector('#scene');
+      const motionButton = document.querySelector('[data-motion-toggle]');
+      const initiallyPaused = motionButton.getAttribute('data-paused') === 'true';
+      const status = [];
+      try {
+        if (initiallyPaused) motionButton.click();
+        const starting = performance.now();
+        while (scene.dataset.renderer !== 'worker' && performance.now() - starting < 15000) await nextFrame();
+        check(scene.dataset.renderer === 'worker', 'Worker renderer did not become ready.');
+        check(document.documentElement.scrollWidth <= window.innerWidth, 'Horizontal overflow.');
+        status.push('PASS: worker rendering; no horizontal overflow.');
+        const toggle = document.querySelector('[data-motion-toggle]');
+        if (toggle.getAttribute('data-paused') !== 'true') toggle.click();
+        check(scene.dataset.motion === 'paused', 'Pause control failed.');
+        document.querySelector('#explore-scene').click();
+        check(document.querySelector('#scene-dialog').open, 'Scene dialog did not open.');
+        check(document.activeElement.id === 'close-scene', 'Modal focus did not reach the close button.');
+        check(document.querySelector('.scene-instruction').textContent.includes('Motion paused.'), 'Paused scene still invites pointer movement.');
+        document.querySelector('#close-scene').click();
+        await nextFrame();
+        check(!document.querySelector('#scene-dialog').open, 'Scene dialog did not close.');
+        check(document.activeElement.id === 'explore-scene', 'Focus was not returned.');
+        status.push('PASS: pause, dialog, and focus restoration.');
+        const story = document.querySelector('[data-test-id="story"]');
+        story.querySelector('summary').click();
+        check(story.open && story.textContent.includes('three hours of computer access'), 'Story did not open.');
+        story.querySelector('summary').click();
+        const email = document.querySelector('[data-test-id="contact-email"]');
+        if (email.tagName === 'BUTTON') email.click();
+        check(document.querySelector('[data-test-id="contact-email"]').getAttribute('href') === 'mailto:oz@jamm.dev', 'Email reveal failed.');
+        check(document.querySelector('[data-test-id="rust-talk"]').src.endsWith('/embed/pYflrrJu9PI'), 'YouTube video changed.');
+        status.push('PASS: story, email, and original YouTube video.');
+        if (toggle.getAttribute('data-paused') === 'true') toggle.click();
+        document.querySelector('#contact').scrollIntoView({behavior:'instant'});
+        for (let count = 0; count < 5; count += 1) await nextFrame();
+        check(scene.dataset.motion === 'paused', 'Rendering continued away from the hero.');
+        document.querySelector('#top').scrollIntoView({behavior:'instant'});
+        for (let count = 0; count < 5; count += 1) await nextFrame();
+        check(scene.dataset.motion === 'playing', 'Rendering did not resume at the hero.');
+        status.push('PASS: scene stops while reading and resumes at the top.');
+        document.querySelector('#explore-scene').click();
+        output.textContent = status.join('\n') + '\nSampling main-thread frame timing with pointer movement for five seconds…';
+        const longTasks = [];
+        let observer;
+        if (window.PerformanceObserver.supportedEntryTypes.includes('longtask')) {
+          observer = new window.PerformanceObserver(list => { longTasks.push(...list.getEntries().map(entry => entry.duration)); });
+          observer.observe({type:'longtask'});
+        }
+        const samples = [];
+        const sampleStart = await nextFrame();
+        let previous = sampleStart;
+        while (previous - sampleStart < 5000) {
+          const now = await nextFrame();
+          document.querySelector('#scene-dialog').dispatchEvent(new window.PointerEvent('pointermove', {
+            bubbles: true,
+            pointerType: 'mouse',
+            clientX: window.innerWidth * (0.5 + Math.sin((now - sampleStart) / 500) * 0.4),
+            clientY: window.innerHeight * (0.5 + Math.cos((now - sampleStart) / 700) * 0.35),
+          }));
+          samples.push(now - previous);
+          previous = now;
+        }
+        observer?.disconnect();
+        const sorted = samples.toSorted((a,b) => a-b);
+        const p95 = sorted[Math.floor(sorted.length * .95)];
+        status.push(`Main thread: ${samples.length} frames / ${(previous-sampleStart).toFixed(0)} ms; p95 interval ${p95.toFixed(1)} ms; ${longTasks.length} long tasks.`);
+        status.push(`Viewport: ${window.innerWidth} × ${window.innerHeight}. Drawing buffer: ${document.querySelector('canvas').width} × ${document.querySelector('canvas').height}.`);
+        output.textContent = status.join('\n');
+      } catch (error) { output.textContent = status.join('\n') + '\nFAIL: ' + error.message; }
+      finally {
+        document.querySelector('#scene-dialog').close();
+        if ((motionButton.getAttribute('data-paused') === 'true') !== initiallyPaused) motionButton.click();
+        run.disabled = false;
+        fallback.disabled = false;
+      }
+    });
+    fallback.addEventListener('click', async () => {
+      const document = frame.contentDocument;
+      const scene = document.querySelector('#scene');
+      const module = await fetch('../js/scene-worker.js').then(response => response.text());
+      if (!module.includes("type: 'unavailable'")) { output.textContent = 'FAIL: renderer has no failure signal.'; return; }
+      // A separate canvas exercises the same worker's initialization-failure path.
+      const canvas = document.createElement('canvas');
+      canvas.width = 16; canvas.height = 16;
+      const offscreen = canvas.transferControlToOffscreen();
+      const source = `OffscreenCanvas.prototype.getContext = () => null; await import(${JSON.stringify(new URL('../js/scene-worker.js', location.href).href)}); postMessage({type:'harness-ready'});`;
+      const workerUrl = URL.createObjectURL(new Blob([source], {type:'text/javascript'}));
+      const worker = new Worker(workerUrl, {type:'module'});
+      worker.addEventListener('message', event => {
+        if (event.data.type === 'harness-ready') {
+          worker.postMessage({type:'init',canvas:offscreen,viewport:{width:16,height:16,pixelRatio:1,compact:true},running:false,imageUrl:new URL('../assets/pelagic-orbit-mobile.jpg',location.href).href},[offscreen]);
+          return;
+        }
+        output.textContent = event.data.type === 'unavailable' ? 'PASS: worker reports unavailable when WebGL cannot start; the poster remains a separate loaded image.\nPoster complete: ' + scene.querySelector('img').complete : 'FAIL: unexpected renderer response.';
+        worker.terminate(); URL.revokeObjectURL(workerUrl);
+      });
+    });
+  </script>
+</body>
+</html>
