@@ -55,8 +55,9 @@
       try {
         if (initiallyPaused) motionButton.click();
         const starting = performance.now();
-        while (scene.dataset.renderer !== 'worker' && performance.now() - starting < 15000) await nextFrame();
+        while ((scene.dataset.renderer !== 'worker' || scene.dataset.ship !== 'ready') && performance.now() - starting < 15000) await nextFrame();
         check(scene.dataset.renderer === 'worker', 'Worker renderer did not become ready.');
+        check(scene.dataset.ship === 'ready', 'The spacecraft texture did not load.');
         check(document.documentElement.scrollWidth <= window.innerWidth, 'Horizontal overflow.');
         status.push('PASS: worker rendering; no horizontal overflow.');
         const toggle = document.querySelector('[data-motion-toggle]');
@@ -65,11 +66,13 @@
         document.querySelector('#explore-scene').click();
         check(document.querySelector('#scene-dialog').open, 'Scene dialog did not open.');
         check(document.activeElement.id === 'close-scene', 'Modal focus did not reach the close button.');
-        check(document.querySelector('.scene-instruction').textContent.includes('Motion paused.'), 'Paused scene still invites pointer movement.');
+        check(scene.dataset.motion === 'playing', 'Exploration did not override the page pause preference.');
+        check(!document.querySelector('#scene-dialog [data-motion-toggle]'), 'Exploration contains a pause control.');
         document.querySelector('#close-scene').click();
         await nextFrame();
         check(!document.querySelector('#scene-dialog').open, 'Scene dialog did not close.');
         check(document.activeElement.id === 'explore-scene', 'Focus was not returned.');
+        check(scene.dataset.motion === 'paused', 'Leaving exploration did not restore the page pause preference.');
         status.push('PASS: pause, dialog, and focus restoration.');
         const story = document.querySelector('[data-test-id="story"]');
         story.querySelector('summary').click();
@@ -78,6 +81,9 @@
         const email = document.querySelector('[data-test-id="contact-email"]');
         if (email.tagName === 'BUTTON') email.click();
         check(document.querySelector('[data-test-id="contact-email"]').getAttribute('href') === 'mailto:oz@jamm.dev', 'Email reveal failed.');
+        const heroEmail = document.querySelector('[data-test-id="hero-email"]');
+        if (heroEmail.tagName === 'BUTTON') heroEmail.click();
+        check(document.querySelector('[data-test-id="hero-email"]').getAttribute('href') === 'mailto:oz@jamm.dev', 'Hero email reveal failed.');
         check(document.querySelector('[data-test-id="rust-talk"]').src.endsWith('/embed/pYflrrJu9PI'), 'YouTube video changed.');
         status.push('PASS: story, email, and original YouTube video.');
         if (toggle.getAttribute('data-paused') === 'true') toggle.click();
@@ -138,7 +144,7 @@
       const worker = new Worker(workerUrl, {type:'module'});
       worker.addEventListener('message', event => {
         if (event.data.type === 'harness-ready') {
-          worker.postMessage({type:'init',canvas:offscreen,viewport:{width:16,height:16,pixelRatio:1,compact:true},running:false,imageUrl:new URL('../assets/pelagic-orbit-mobile.jpg',location.href).href},[offscreen]);
+          worker.postMessage({type:'init',canvas:offscreen,viewport:{width:16,height:16,pixelRatio:1,compact:true},running:false,imageUrl:new URL('../assets/pelagic-orbit.jpg',location.href).href},[offscreen]);
           return;
         }
         output.textContent = event.data.type === 'unavailable' ? 'PASS: worker reports unavailable when WebGL cannot start; the poster remains a separate loaded image.\nPoster complete: ' + scene.querySelector('img').complete : 'FAIL: unexpected renderer response.';

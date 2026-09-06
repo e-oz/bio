@@ -19,7 +19,7 @@ export function cameraTransform(pointer, exploration) {
   const horizontal = Math.max(-1, Math.min(1, pointer[0]));
   const vertical = Math.max(-1, Math.min(1, pointer[1]));
   return [
-    0.986 - amount * 0.106,
+    0.972 - amount * 0.106,
     horizontal * (0.003 + amount * 0.039),
     vertical * (0.0018 + amount * 0.0262),
   ];

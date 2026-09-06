@@ -48,8 +48,8 @@ test('camera travel keeps image edges covered throughout the transition into exp
     for (const pointer of [[-1, -1], [1, 1], [-1, 1], [1, -1], [10, -10]]) {
       const [scale, horizontal, vertical] = cameraTransform(pointer, exploration);
       const margin = (1 - scale) / 2;
-      assert.ok(margin - Math.abs(horizontal) > 0.0021, 'Water distortion must fit inside the horizontal overscan.');
-      assert.ok(margin - Math.abs(vertical) > 0.0009, 'Water distortion must fit inside the vertical overscan.');
+      assert.ok(margin - Math.abs(horizontal) > 0.0086, 'Water distortion must fit inside the horizontal overscan.');
+      assert.ok(margin - Math.abs(vertical) > 0.0038, 'Water distortion must fit inside the vertical overscan.');
     }
   }
 });

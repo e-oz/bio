@@ -36,9 +36,9 @@ function updateMotion() {
     button.querySelector('[data-motion-label]').textContent = paused ? 'Play motion' : 'Pause motion';
     button.querySelector('[data-motion-icon]').textContent = paused ? '▷' : 'Ⅱ';
   });
-  const running = !paused && pageVisible && (heroVisible || dialog.open);
+  const running = pageVisible && (dialog.open || (!paused && heroVisible));
   scene.dataset.motion = running && !failed ? 'playing' : 'paused';
-  sceneInstruction.textContent = failed ? 'Enjoy the still view.' : paused ? 'Motion paused. Play motion to explore.' : 'Move your pointer. Follow the current.';
+  sceneInstruction.textContent = failed ? 'Enjoy the still view.' : 'Move your pointer. Follow the current.';
   worker?.postMessage({ type: 'running', value: running, exploring: dialog.open && finePointer.matches });
   if (running && !worker && !starting && !failed) startScene();
 }
@@ -69,11 +69,12 @@ function startScene() {
         updateMotion();
       }
       if (event.data.type === 'unavailable') useStillScene();
+      if (event.data.type === 'ship-ready') scene.dataset.ship = 'ready';
     });
     const offscreen = canvas.transferControlToOffscreen();
     const poster = scene.querySelector('img');
-    const imageUrl = poster.currentSrc || new URL(compactViewport.matches ? '../assets/pelagic-orbit-mobile.jpg' : '../assets/pelagic-orbit.jpg', import.meta.url).href;
-    worker.postMessage({ type: 'init', canvas: offscreen, viewport: viewport(), imageUrl, running: !paused && pageVisible && (heroVisible || dialog.open), exploring: dialog.open && finePointer.matches }, [offscreen]);
+    const imageUrl = poster.currentSrc || new URL('../assets/pelagic-orbit.jpg', import.meta.url).href;
+    worker.postMessage({ type: 'init', canvas: offscreen, viewport: viewport(), imageUrl, running: pageVisible && (dialog.open || (!paused && heroVisible)), exploring: dialog.open && finePointer.matches }, [offscreen]);
     readinessTimer = setTimeout(useStillScene, 15_000);
   } catch { useStillScene(); }
 }
@@ -119,7 +120,7 @@ window.addEventListener('resize', () => {
   resizeTimer = setTimeout(() => { worker?.postMessage({ type: 'resize', viewport: viewport() }); }, 140);
 }, { passive: true });
 window.addEventListener('pointermove', event => {
-  if (!finePointer.matches || event.pointerType === 'touch' || paused || !worker || (!heroVisible && !dialog.open)) return;
+  if (!finePointer.matches || event.pointerType === 'touch' || (paused && !dialog.open) || !worker || (!heroVisible && !dialog.open)) return;
   latestPointer = [event.clientX / innerWidth * 2 - 1, event.clientY / innerHeight * 2 - 1];
   if (pointerFrame) return;
   pointerFrame = requestAnimationFrame(() => {
