@@ -1,9 +1,9 @@
 import * as THREE from './vendor/three.module.min.js';
-import { createAnimationClock, createFrameLimiter, dampingFactor } from './animation-clock.mjs?v=3d-12';
-import { drawingSize, sceneLayout } from './scene-math.mjs?v=3d-12';
-import { createSceneFinish } from './scene-finish.js?v=3d-12';
-import { createStarship, createManta, createParticles, createOceanGeometry, createRingProfile } from './scene-models.js?v=3d-12';
-import { worldVertex, skyFragment, planetFragment, ringFragment, oceanVertex, oceanFragment } from './scene-shaders.js?v=3d-12';
+import { createAnimationClock, createFrameLimiter, dampingFactor } from './animation-clock.mjs?v=3d-14';
+import { drawingSize, sceneLayout } from './scene-math.mjs?v=3d-14';
+import { createSceneFinish } from './scene-finish.js?v=3d-14';
+import { createStarship, createManta, createParticles, createOceanGeometry, createRingProfile } from './scene-models.js?v=3d-14';
+import { worldVertex, skyFragment, planetFragment, ringFragment, oceanVertex, oceanFragment } from './scene-shaders.js?v=3d-14';
 
 let renderer, scene, camera, reflectionCamera, reflectionTarget, ocean, planet, ship;
 let stars, motes, viewport, canvas, finish, layout;

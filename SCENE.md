@@ -40,7 +40,7 @@ Reload after editing. A local server's cache policy does not replace the module-
 
 - Visual quality, atmosphere, and readability take priority over higher frame rates. Preserve the dark blue ocean, cyan bioluminescence, and restrained warm horizon light.
 - Keep the ship's scientific, industrial design and dark palette, and the manta rays' existing anatomy and luminous wing patterns. The ship is volumetric geometry with changing views and lighting; a moving flat hull image is not a substitute.
-- Keep fine ripples visible on darker wave slopes. Foam should form broken streaks and flecks along crests, without large connected bubble outlines.
+- Keep fine ripples visible on darker wave slopes. Foam should be sparse, softly edged crest froth, without repeated bright marks, broad painted coverage, or large connected bubble outlines.
 - Preserve biography text, prominent contact actions, link destinations, and the YouTube video with ID `pYflrrJu9PI`. Scene work does not authorize new visitor-facing copy or edits to existing copy.
 - Keep all biography text available on mobile. Reduce non-critical rendering effects only when such a visual tradeoff is explicitly in scope.
 - With the renderer available, exploration animates whenever the document is visible, even if the biography's background was paused. Its only interactive control is **Back to the page**; Escape also closes it. Returning restores the biography's motion preference and focus.
@@ -111,7 +111,7 @@ The worker currently keeps `quality = 1`. It does **not** progressively lower re
 
 `waveHeight()` is shared by the vertex and fragment shaders. It supplies the geometric swells. `detail()` adds smaller ripples for surface shading. The fragment shader derives its normal from screen derivatives of a single height evaluation, avoiding repeated evaluations of the entire wave field around each pixel.
 
-Bioluminescent foam uses directional noise, broken coverage, and distance/pixel-footprint filtering. The subtle `skyFill` contribution reveals small ripples outside the stronger planetary reflection. Preserve the warm reflection and the sharper blue ripple detail while tuning this fill.
+Foam is confined to the higher crests, with continuous density from several scales of isotropic turbulence. Finer detail fades below pixel size. Restrained emission and surface lighting keep it integrated with the water; thresholded, stretched noise islands create conspicuous repeating marks. The subtle `skyFill` contribution also reveals small ripples outside the stronger planetary reflection. Preserve the warm reflection and the sharper blue ripple detail while tuning this fill.
 
 ### Ship and rays
 

@@ -160,25 +160,28 @@ void main() {
   vec3 reflection = texture2D(uReflection,clamp(reflectionUv,0.001,0.999)).rgb;
   vec3 color = mix(vec3(0.0025,0.012,0.020),reflection*vec3(0.63,0.86,0.97),0.40+fresnel*0.55);
   float crest = smoothstep(0.05,0.68,h);
-  // Broken streaks follow the dominant crest direction and disperse into finer flecks.
-  float organisms = noise3(vec3(p*0.72 + vec2(uTime*0.045,0.0),2.7));
-  vec2 foamUv = vec2(dot(p,vec2(0.87,0.50))*14.0, dot(p,vec2(-0.50,0.87))*4.2);
-  foamUv += vec2(-uTime*0.24,uTime*0.035) + organisms*2.8;
-  float flecks = noise3(vec3(foamUv,uTime*0.16));
-  float footprint = max(length(dFdx(foamUv)),length(dFdy(foamUv)));
-  float resolved = 1.0-smoothstep(0.4,1.3,footprint);
-  float fragments = mix(0.18,smoothstep(0.51,0.79,flecks),resolved);
-  float bloom = (fragments*1.6 + pow(flecks,6.0)*0.35*resolved)
-              * smoothstep(0.44,0.72,organisms) * smoothstep(0.16,0.72,h);
-  bloom *= 1.0-smoothstep(45.0,180.0,distanceToEye);
-  color += vec3(0.002,0.34,0.58)*bloom;
+  float skyFill=pow(max(0.0,dot(n,normalize(vec3(-0.25,1.0,0.20)))),18.0);
+  // Thin crest froth has continuous density, with finer turbulence fading below pixel size.
+  float footprint = max(length(dFdx(p)),length(dFdy(p)));
+  if(h>0.40 && distanceToEye<150.0) {
+    vec2 flow = p + vec2(-uTime*0.18,uTime*0.12);
+    float churn = noise3(vec3(flow*1.1,uTime*0.16));
+    float fine = noise3(vec3(flow*7.3+churn*2.8,uTime*0.30));
+    float mist = noise3(vec3(flow*21.3,uTime*0.17));
+    fine = mix(0.5,fine,1.0-smoothstep(0.04,0.18,footprint));
+    mist = mix(0.5,mist,1.0-smoothstep(0.015,0.05,footprint));
+    float cap = smoothstep(0.50,0.95,h+(churn-0.5)*0.18);
+    float froth = cap*cap*cap*smoothstep(0.26,0.65,churn)*(0.25+fine*0.50+mist*0.25);
+    froth *= 0.35+skyFill*0.65;
+    froth *= 1.0-smoothstep(40.0,150.0,distanceToEye);
+    color += vec3(0.012,0.095,0.135)*froth;
+  }
   color += vec3(0.002,0.018,0.023)*crest;
   vec3 halfLight = normalize(eye+uSun);
   float sparkle = pow(max(0.0,dot(n,halfLight)),180.0);
   color += vec3(1.0,0.47,0.16)*sparkle*1.4;
   float planetSpecular=pow(max(0.0,dot(n,normalize(eye+normalize(vec3(0.34,0.40,-1.0))))),65.0);
   color += vec3(0.018,0.070,0.12)*planetSpecular;
-  float skyFill=pow(max(0.0,dot(n,normalize(vec3(-0.25,1.0,0.20)))),18.0);
   color += vec3(0.0025,0.009,0.017)*skyFill*(1.0-planetSpecular);
   float fog = 1.0-exp(-distanceToEye*0.0017);
   color = mix(color,vec3(0.013,0.031,0.05),fog);
