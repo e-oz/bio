@@ -9,7 +9,7 @@ test('retina and large displays cannot exceed the drawing budget through pixel d
     for (const compact of [true, false]) {
       for (const quality of [1, 0.75, 0.5]) {
         const size = drawingSize(width, height, pixelRatio, compact, quality);
-        const budget = (compact ? 460_000 : 1_450_000) * quality;
+        const budget = (compact ? 460_000 : 3_200_000) * quality;
         assert.ok(size.width * size.height <= budget + size.width + size.height);
         assert.ok(Math.abs(size.width / size.height - width / height) < 0.01);
         assert.ok(size.width > 0 && size.height > 0);

@@ -43,13 +43,14 @@ function updateMotion() {
   if (running && !worker && !starting && !failed) startScene();
 }
 
-function useStillScene() {
+function useStillScene(event) {
   failed = true;
   starting = false;
   clearTimeout(readinessTimer);
   worker?.terminate();
   worker = undefined;
   scene.dataset.renderer = 'still';
+  scene.dataset.error = event?.data?.reason || event?.message || 'Renderer unavailable';
   scene.dataset.motion = 'unavailable';
   sceneInstruction.textContent = 'Enjoy the still view.';
   motionButtons.forEach(button => { button.hidden = true; });
@@ -59,7 +60,7 @@ function startScene() {
   if (!('Worker' in window) || !canvas.transferControlToOffscreen) { useStillScene(); return; }
   starting = true;
   try {
-    worker = new Worker(new URL('./scene-worker.js', import.meta.url), { type: 'module', name: 'pelagic-orbit' });
+    worker = new Worker(new URL('./scene-worker.js?v=3d-9', import.meta.url), { type: 'module', name: 'pelagic-orbit' });
     worker.addEventListener('error', useStillScene);
     worker.addEventListener('message', event => {
       if (event.data.type === 'ready') {
@@ -68,15 +69,25 @@ function startScene() {
         scene.dataset.renderer = 'worker';
         updateMotion();
       }
-      if (event.data.type === 'unavailable') useStillScene();
+      if (event.data.type === 'unavailable') useStillScene(event);
       if (event.data.type === 'ship-ready') scene.dataset.ship = 'ready';
+      if (event.data.type === 'resolution') {
+        scene.dataset.resolution = `${event.data.width}×${event.data.height}`;
+        scene.dataset.quality = String(event.data.quality);
+        scene.dataset.antialias = String(event.data.samples);
+      }
+      if (event.data.type === 'performance') {
+        scene.dataset.fps = String(event.data.fps);
+        scene.dataset.cpuMs = String(event.data.cpuMs);
+        scene.dataset.drawCalls = String(event.data.drawCalls);
+        scene.dataset.triangles = String(event.data.triangles);
+        scene.dataset.elapsed = String(event.data.elapsed);
+      }
     });
     const offscreen = canvas.transferControlToOffscreen();
-    const poster = scene.querySelector('img');
-    const imageUrl = poster.currentSrc || new URL('../assets/pelagic-orbit.jpg', import.meta.url).href;
-    worker.postMessage({ type: 'init', canvas: offscreen, viewport: viewport(), imageUrl, running: pageVisible && (dialog.open || (!paused && heroVisible)), exploring: dialog.open && finePointer.matches }, [offscreen]);
-    readinessTimer = setTimeout(useStillScene, 15_000);
-  } catch { useStillScene(); }
+    worker.postMessage({ type: 'init', canvas: offscreen, viewport: viewport(), running: pageVisible && (dialog.open || (!paused && heroVisible)), exploring: dialog.open && finePointer.matches }, [offscreen]);
+    readinessTimer = setTimeout(() => useStillScene({ message: 'Scene initialization timed out' }), 15_000);
+  } catch (error) { useStillScene(error); }
 }
 
 motionButtons.forEach(button => {

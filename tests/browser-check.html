@@ -57,7 +57,7 @@
         const starting = performance.now();
         while ((scene.dataset.renderer !== 'worker' || scene.dataset.ship !== 'ready') && performance.now() - starting < 15000) await nextFrame();
         check(scene.dataset.renderer === 'worker', 'Worker renderer did not become ready.');
-        check(scene.dataset.ship === 'ready', 'The spacecraft texture did not load.');
+        check(scene.dataset.ship === 'ready', 'The spacecraft geometry did not become ready.');
         check(document.documentElement.scrollWidth <= window.innerWidth, 'Horizontal overflow.');
         status.push('PASS: worker rendering; no horizontal overflow.');
         const toggle = document.querySelector('[data-motion-toggle]');
@@ -103,6 +103,7 @@
           observer.observe({type:'longtask'});
         }
         const samples = [];
+        const sceneTimeAtStart = Number(scene.dataset.elapsed || 0);
         const sampleStart = await nextFrame();
         let previous = sampleStart;
         while (previous - sampleStart < 5000) {
@@ -117,10 +118,12 @@
           previous = now;
         }
         observer?.disconnect();
+        check(Number(scene.dataset.elapsed) > sceneTimeAtStart, 'The scene animation clock did not advance during exploration.');
         const sorted = samples.toSorted((a,b) => a-b);
         const p95 = sorted[Math.floor(sorted.length * .95)];
         status.push(`Main thread: ${samples.length} frames / ${(previous-sampleStart).toFixed(0)} ms; p95 interval ${p95.toFixed(1)} ms; ${longTasks.length} long tasks.`);
-        status.push(`Viewport: ${window.innerWidth} × ${window.innerHeight}. Drawing buffer: ${document.querySelector('canvas').width} × ${document.querySelector('canvas').height}.`);
+        status.push(`Scene worker: ${scene.dataset.fps} fps; ${scene.dataset.cpuMs} ms CPU per frame; ${scene.dataset.drawCalls} draw calls; ${scene.dataset.triangles} triangles.`);
+        status.push(`Viewport: ${window.innerWidth} × ${window.innerHeight}. Drawing buffer: ${scene.dataset.resolution}. Quality: ${scene.dataset.quality}. MSAA: ${scene.dataset.antialias}×.`);
         output.textContent = status.join('\n');
       } catch (error) { output.textContent = status.join('\n') + '\nFAIL: ' + error.message; }
       finally {
