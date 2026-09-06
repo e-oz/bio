@@ -147,10 +147,12 @@ float detail(vec2 p) {
 void main() {
   vec2 p = vWorld.xz;
   float distanceToEye = length(cameraPosition-vWorld);
-  float e = 0.075 + distanceToEye * 0.0005;
   float h = detail(p);
-  vec3 n = normalize(vec3(detail(p-vec2(e,0))-detail(p+vec2(e,0)), 2.0*e,
-                          detail(p-vec2(0,e))-detail(p+vec2(0,e))));
+  // Screen derivatives recover the surface normal from a single height evaluation.
+  vec3 surface = vec3(p.x,h,p.y);
+  vec3 surfaceNormal = cross(dFdx(surface),dFdy(surface));
+  surfaceNormal *= surfaceNormal.y < 0.0 ? -1.0 : 1.0;
+  vec3 n = surfaceNormal * inversesqrt(max(dot(surfaceNormal,surfaceNormal),0.000000000001));
   vec3 eye = normalize(cameraPosition-vWorld);
   float fresnel = 0.035 + 0.965*pow(1.0-clamp(dot(n,eye),0.0,1.0),5.0);
   vec2 reflectionUv = vReflection.xy/vReflection.w;
@@ -176,6 +178,8 @@ void main() {
   color += vec3(1.0,0.47,0.16)*sparkle*1.4;
   float planetSpecular=pow(max(0.0,dot(n,normalize(eye+normalize(vec3(0.34,0.40,-1.0))))),65.0);
   color += vec3(0.018,0.070,0.12)*planetSpecular;
+  float skyFill=pow(max(0.0,dot(n,normalize(vec3(-0.25,1.0,0.20)))),18.0);
+  color += vec3(0.0025,0.009,0.017)*skyFill*(1.0-planetSpecular);
   float fog = 1.0-exp(-distanceToEye*0.0017);
   color = mix(color,vec3(0.013,0.031,0.05),fog);
   gl_FragColor = vec4(color,1.0);

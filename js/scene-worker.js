@@ -1,14 +1,19 @@
 import * as THREE from './vendor/three.module.min.js';
-import { drawingSize, sceneLayout } from './scene-math.mjs?v=3d-9';
-import { createSceneFinish } from './scene-finish.js?v=3d-9';
-import { createStarship, createManta, createParticles, createOceanGeometry, createRingProfile } from './scene-models.js?v=3d-9';
-import { worldVertex, skyFragment, planetFragment, ringFragment, oceanVertex, oceanFragment } from './scene-shaders.js?v=3d-9';
+import { createAnimationClock, createFrameLimiter, dampingFactor } from './animation-clock.mjs?v=3d-12';
+import { drawingSize, sceneLayout } from './scene-math.mjs?v=3d-12';
+import { createSceneFinish } from './scene-finish.js?v=3d-12';
+import { createStarship, createManta, createParticles, createOceanGeometry, createRingProfile } from './scene-models.js?v=3d-12';
+import { worldVertex, skyFragment, planetFragment, ringFragment, oceanVertex, oceanFragment } from './scene-shaders.js?v=3d-12';
 
 let renderer, scene, camera, reflectionCamera, reflectionTarget, ocean, planet, ship;
 let stars, motes, viewport, canvas, finish, layout;
 let running=false, initialized=false, failed=false, timer;
-let elapsed=0, previous=0, lastRendered=0, frameNumber=0;
-let quality=1, slowFrames=0, exploration=0, exploring=false;
+let elapsed=0, frameNumber=0;
+let exploration=0, exploring=false;
+const quality=1;
+const animationClock=createAnimationClock();
+const frameLimiter=createFrameLimiter();
+const usesAnimationFrame=typeof self.requestAnimationFrame==='function';
 let reportStarted=0, reportFrames=0, reportCpu=0;
 const targetPointer=new THREE.Vector2(), pointer=new THREE.Vector2();
 const school=[];
@@ -21,7 +26,7 @@ const lookTarget=new THREE.Vector3(), reflectedTarget=new THREE.Vector3();
 
 function unavailable(error) {
   if(failed)return;
-  failed=true;running=false;clearTimeout(timer);
+  failed=true;running=false;cancelScheduledFrame();animationClock.pause();
   console.error('Scene renderer unavailable:',error);
   self.postMessage({type: 'unavailable',reason:String(error?.message||error).slice(0,400)});
 }
@@ -115,12 +120,13 @@ async function initialize(message) {
   if(failed)return;
   self.postMessage({type:'ready'});
   self.postMessage({type:'ship-ready'});
-  previous=performance.now();reportStarted=previous;
+  reportStarted=performance.now();animationClock.resume(reportStarted);
+  if(!running)animationClock.pause();
   if(running)schedule();
 }
 
 function updateObjects(delta) {
-  const smoothing=1-Math.exp(-delta*2.2);
+  const smoothing=dampingFactor(delta,2.2);
   pointer.lerp(targetPointer,smoothing);
   exploration+=(Number(exploring)-exploration)*smoothing;
   const travel=0.12+exploration*1.8;
@@ -173,23 +179,28 @@ function render(delta) {
 }
 
 function schedule() {
-  clearTimeout(timer);
-  const interval=1000/(viewport.compact?24:30);
-  timer=setTimeout(tick,Math.max(0,interval-(performance.now()-lastRendered)));
+  if(usesAnimationFrame)timer=self.requestAnimationFrame(tick);
+  else timer=setTimeout(tick,Math.max(1,Math.ceil(frameLimiter.delay(performance.now()))));
 }
 
-function tick() {
+function cancelScheduledFrame() {
+  if(timer===undefined)return;
+  if(usesAnimationFrame)self.cancelAnimationFrame(timer);
+  else clearTimeout(timer);
+  timer=undefined;
+}
+
+function tick(timestamp) {
+  timer=undefined;
   if(!running||!initialized||failed)return;
   const now=performance.now();
-  const frameDuration=now-previous;
-  const delta=Math.min(frameDuration/1000,0.1);
-  previous=now;lastRendered=now;elapsed+=delta;
+  const frameTime=timestamp??now;
+  if(!frameLimiter.shouldRender(frameTime)){schedule();return;}
+  const frame=animationClock.advance(now);
+  const delta=frame.delta;
+  elapsed=frame.elapsed;
   try{render(delta);}catch(error){unavailable(error);return;}
   const cpu=performance.now()-now;
-  const interval=1000/(viewport.compact?24:30);
-  // Lower the pixel budget after sustained pressure, without oscillating between quality levels.
-  slowFrames=Math.max(0,slowFrames+(cpu>interval*0.7||frameDuration>interval*1.65?1:-0.25));
-  if(slowFrames>22&&quality>0.5){quality=Math.max(0.5,quality*0.75);slowFrames=0;resize();}
   reportFrames++;reportCpu+=cpu;
   if(now-reportStarted>2000){
     self.postMessage({type:'performance',fps:Math.round(reportFrames*1000/(now-reportStarted)),cpuMs:Math.round(reportCpu/reportFrames*10)/10,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,elapsed:Math.round(elapsed*10)/10});
@@ -205,8 +216,8 @@ self.addEventListener('message',event=>{
   if(message.type==='running'){
     exploring=message.exploring;
     const wasRunning=running;running=message.value;
-    if(initialized&&running&&!wasRunning){previous=performance.now();lastRendered=0;reportStarted=previous;reportFrames=0;reportCpu=0;schedule();}
-    if(!running)clearTimeout(timer);
+    if(initialized&&running&&!wasRunning){reportStarted=performance.now();animationClock.resume(reportStarted);frameLimiter.reset();reportFrames=0;reportCpu=0;schedule();}
+    if(!running){cancelScheduledFrame();animationClock.pause();}
   }
   if(message.type==='pointer')targetPointer.set(...message.value);
   if(message.type==='resize'){viewport=message.viewport;if(initialized){resize();if(!running)render(0);}}
