@@ -105,12 +105,31 @@ void main() {
 `;
 
 export const waves = /* glsl */`
+float swellHash(vec2 p) {
+  vec3 h=fract(vec3(p.xyx)*0.1031);
+  h+=dot(h,h.yzx+33.33);
+  return fract((h.x+h.y)*h.z);
+}
+float swellNoise(vec2 p) {
+  vec2 cell=floor(p), f=fract(p);
+  f=f*f*f*(f*(f*6.0-15.0)+10.0);
+  return mix(mix(swellHash(cell),swellHash(cell+vec2(1,0)),f.x),
+             mix(swellHash(cell+vec2(0,1)),swellHash(cell+vec2(1,1)),f.x),f.y);
+}
 float waveHeight(vec2 p, float t) {
-  return sin(dot(p,vec2(0.19,0.11))-t*0.85)*0.52
-       + sin(dot(p,vec2(-0.12,0.29))-t*1.05)*0.28
-       + sin(dot(p,vec2(0.43,0.21))-t*1.32)*0.18
-       + sin(dot(p,vec2(-0.39,0.57))-t*1.62)*0.11
-       + sin(dot(p,vec2(0.92,0.67))-t*2.13)*0.065;
+  // Slowly advected variation bends crests and changes swell strength across the sea.
+  float driftA=swellNoise(p*0.034+vec2(t*0.008,-t*0.006));
+  float driftB=swellNoise(p*0.027+vec2(19.7-t*0.005,8.3+t*0.007));
+  vec2 q=p+(vec2(driftA,driftB)-0.5)*7.0;
+  // Independent phases and non-harmonic wavelengths break up continuous parallel rows.
+  return sin(dot(q,vec2(0.146,0.061))-t*0.723+1.37)*0.355*(0.8+driftA*0.4)
+       + sin(dot(q,vec2(-0.091,0.208))-t*0.866+4.71)*0.313*(0.8+driftB*0.4)
+       + sin(dot(q,vec2(0.254,-0.097))-t*0.948+2.83)*0.261
+       + sin(dot(q,vec2(0.153,0.337))-t*1.105+0.46)*0.219
+       + sin(dot(q,vec2(-0.417,0.125))-t*1.199+5.92)*0.167
+       + sin(dot(q,vec2(0.492,0.386))-t*1.436+3.18)*0.125
+       + sin(dot(q,vec2(-0.281,0.809))-t*1.681+0.87)*0.094
+       + sin(dot(q,vec2(0.963,-0.342))-t*1.837+4.16)*0.057;
 }
 `;
 

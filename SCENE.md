@@ -109,7 +109,9 @@ The worker currently keeps `quality = 1`. It does **not** progressively lower re
 
 ### Ocean
 
-`waveHeight()` is shared by the vertex and fragment shaders. It supplies the geometric swells. `detail()` adds smaller ripples for surface shading. The fragment shader derives its normal from screen derivatives of a single height evaluation, avoiding repeated evaluations of the entire wave field around each pixel.
+`waveHeight()` is shared by the vertex and fragment shaders. Eight crossing swells use independent phases and non-harmonic wavelengths. Slowly advected spatial variation bends the crests and varies the larger swells' strength, breaking up long parallel rows while retaining smooth motion. Keep this variation deterministic and time-based; randomizing wave parameters each frame would cause flicker and discontinuities.
+
+`detail()` adds smaller ripples for surface shading. The fragment shader derives its normal from screen derivatives of a single height evaluation, avoiding repeated evaluations of the entire wave field around each pixel. Change the shared wave function rather than modifying geometric displacement and surface shading independently.
 
 Foam is confined to the higher crests, with continuous density from several scales of isotropic turbulence. Finer detail fades below pixel size. Restrained emission and surface lighting keep it integrated with the water; thresholded, stretched noise islands create conspicuous repeating marks. The subtle `skyFill` contribution also reveals small ripples outside the stronger planetary reflection. Preserve the warm reflection and the sharper blue ripple detail while tuning this fill.
 
