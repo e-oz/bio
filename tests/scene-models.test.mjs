@@ -125,3 +125,34 @@ test('the cabin turns slowly around its vertical axis with deterministic timing'
   vessel.update(10);
   assert.equal(cabin.rotation.y,angle);
 });
+
+
+test('ring planes complete continuous turns independently of their axial spin', () => {
+  const vessel=createStarship();
+  const rings=vessel.group.children.filter(object=>object.isGroup && object.children[0]?.isGroup);
+  vessel.update(0);
+  const initial=rings.map(ring=>ring.rotation.x);
+  vessel.update(200);
+  const turned=rings.map(ring=>ring.rotation.x);
+  turned.forEach((angle,index)=>assert.ok(Math.abs(angle-initial[index])>Math.PI*2));
+  assert.ok(turned[0]>initial[0] && turned[1]<initial[1]);
+  vessel.update(100);
+  rings.forEach((ring,index)=>assert.ok(Math.abs(ring.rotation.x-(initial[index]+turned[index])/2)<1e-12));
+  vessel.update(200);
+  assert.deepEqual(rings.map(ring=>ring.rotation.x),turned);
+});
+
+
+test('ring gimbals turn continuously around the third axis at independent rates', () => {
+  const vessel=createStarship();
+  const rings=vessel.group.children.filter(object=>object.isGroup && object.children[0]?.isGroup);
+  const initial=rings.map(ring=>ring.rotation.y);
+  vessel.update(400);
+  const turned=rings.map(ring=>ring.rotation.y);
+  turned.forEach((angle,index)=>assert.ok(Math.abs(angle-initial[index])>Math.PI*2));
+  assert.ok(turned[0]>initial[0] && turned[2]<initial[2]);
+  vessel.update(200);
+  rings.forEach((ring,index)=>assert.ok(Math.abs(ring.rotation.y-(initial[index]+turned[index])/2)<1e-12));
+  vessel.update(400);
+  assert.deepEqual(rings.map(ring=>ring.rotation.y),turned);
+});

@@ -1,6 +1,6 @@
 import * as THREE from './vendor/three.module.min.js';
 import { mergeGeometries } from './vendor/BufferGeometryUtils.js';
-import { mantaVertex, mantaFragment, pointVertex, pointFragment } from './scene-shaders.js?v=3d-27';
+import { mantaVertex, mantaFragment, pointVertex, pointFragment } from './scene-shaders.js?v=3d-31';
 
 /** Seeded placement keeps the composition stable across reloads and quality changes. */
 export function randomSequence(seed) {
@@ -153,9 +153,9 @@ export function createStarship() {
     rings.push({gimbal,rotor});
   }
   const update=(time)=>{
-    cabin.rotation.y=time*0.045;
+    cabin.rotation.y=time*0.09;
     rings.forEach(({gimbal,rotor},index)=>{
-      gimbal.rotation.set([0.28,1.05,-0.88][index]+Math.sin(time*0.075+index)*0.18,index*0.58+Math.sin(time*0.055)*0.2,index*0.42);
+      gimbal.rotation.set([0.28,1.05,-0.88][index]+Math.sin(index)*0.18+time*[0.13,-0.10,0.08][index],index*0.58+time*[0.028,0.022,-0.018][index],index*0.42);
       rotor.rotation.z=time*[0.24,-0.18,0.135][index]+index*0.7;
     });
   };
