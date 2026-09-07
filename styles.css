@@ -38,7 +38,7 @@ img { display: block; max-width: 100%; }
 .scene { position: fixed; inset: 0; z-index: -1; background: var(--deep); overflow: hidden; pointer-events: none; }
 .scene-poster,.scene-poster img,.scene canvas,.scene-shade { position: absolute; inset: 0; width: 100%; height: 100%; }
 .scene-poster img { object-fit: cover; object-position: 50% 50%; }
-.scene canvas { opacity: 0; transition: opacity 1.2s ease; }
+.scene canvas { object-fit: cover; opacity: 0; transition: opacity 1.2s ease; }
 .scene[data-renderer='worker'] canvas { opacity: 1; }
 .scene-shade { background: linear-gradient(90deg, #04101375, #0410130a 62%), linear-gradient(0deg, #071419d9, transparent 25%); }
 .site-header { position: absolute; top: 0; left: 0; width: 100%; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 2rem; padding: 1.6rem var(--gutter); border-bottom: 1px solid #b5d6d317; }

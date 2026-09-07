@@ -17,7 +17,7 @@ let paused = reducedMotion.matches || Boolean(navigator.connection?.saveData);
 let manualPause = null;
 let pointerFrame;
 let latestPointer = [0, 0];
-let resizeTimer;
+let lastViewport;
 let readinessTimer;
 
 try {
@@ -28,9 +28,17 @@ try {
 
 function viewport() {
   const compact = compactViewport.matches;
-  if (!compact) return { width: innerWidth, height: innerHeight, pixelRatio: devicePixelRatio || 1, compact };
   const sceneBounds = scene.getBoundingClientRect();
   return { width: sceneBounds.width, height: sceneBounds.height, pixelRatio: devicePixelRatio || 1, compact };
+}
+
+function resizeScene() {
+  if (!worker) return;
+  const nextViewport = viewport();
+  if (nextViewport.width <= 0 || nextViewport.height <= 0) return;
+  if (lastViewport && Object.keys(nextViewport).every(key => nextViewport[key] === lastViewport[key])) return;
+  lastViewport = nextViewport;
+  worker.postMessage({ type: 'resize', viewport: nextViewport });
 }
 
 function updateMotion() {
@@ -63,7 +71,7 @@ function startScene() {
   if (!('Worker' in window) || !canvas.transferControlToOffscreen) { useStillScene(); return; }
   starting = true;
   try {
-    worker = new Worker(new URL('./scene-worker.js?v=3d-31', import.meta.url), { type: 'module', name: 'pelagic-orbit' });
+    worker = new Worker(new URL('./scene-worker.js?v=3d-32', import.meta.url), { type: 'module', name: 'pelagic-orbit' });
     worker.addEventListener('error', useStillScene);
     worker.addEventListener('message', event => {
       if (event.data.type === 'ready') {
@@ -88,7 +96,8 @@ function startScene() {
       }
     });
     const offscreen = canvas.transferControlToOffscreen();
-    worker.postMessage({ type: 'init', canvas: offscreen, viewport: viewport(), running: pageVisible && (dialog.open || (!paused && heroVisible)), exploring: dialog.open && finePointer.matches }, [offscreen]);
+    lastViewport = viewport();
+    worker.postMessage({ type: 'init', canvas: offscreen, viewport: lastViewport, running: pageVisible && (dialog.open || (!paused && heroVisible)), exploring: dialog.open && finePointer.matches }, [offscreen]);
     readinessTimer = setTimeout(() => useStillScene({ message: 'Scene initialization timed out' }), 15_000);
   } catch (error) { useStillScene(error); }
 }
@@ -129,10 +138,8 @@ reducedMotion.addEventListener('change', event => {
   updateMotion();
 });
 finePointer.addEventListener('change', updateMotion);
-window.addEventListener('resize', () => {
-  clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => { worker?.postMessage({ type: 'resize', viewport: viewport() }); }, 140);
-}, { passive: true });
+new ResizeObserver(resizeScene).observe(scene);
+window.addEventListener('resize', resizeScene, { passive: true });
 window.addEventListener('pointermove', event => {
   if (!finePointer.matches || event.pointerType === 'touch' || (paused && !dialog.open) || !worker || (!heroVisible && !dialog.open)) return;
   latestPointer = [event.clientX / innerWidth * 2 - 1, event.clientY / innerHeight * 2 - 1];

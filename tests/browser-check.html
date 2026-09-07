@@ -74,6 +74,29 @@
         check(document.activeElement.id === 'explore-scene', 'Focus was not returned.');
         check(scene.dataset.motion === 'paused', 'Leaving exploration did not restore the page pause preference.');
         status.push('PASS: pause, dialog, and focus restoration.');
+        const frameStyle = frame.getAttribute('style');
+        try {
+          for (const [width,height] of [[960,540],[540,900],[844,390],[390,844],[1000,650]]) {
+            frame.style.width = `${width}px`;
+            frame.style.height = `${height}px`;
+            const canvas = document.querySelector('#scene-canvas');
+            check(window.getComputedStyle(canvas).objectFit === 'cover', 'Pending resize frames can stretch.');
+            const resizeStarted = performance.now();
+            let matched = false;
+            while (!matched && performance.now() - resizeStarted < 3000) {
+              await nextFrame();
+              const bounds = scene.getBoundingClientRect();
+              const [bufferWidth,bufferHeight] = (scene.dataset.resolution || '').split('×').map(Number);
+              matched = Math.abs(bufferWidth / bufferHeight - bounds.width / bounds.height) < 0.003;
+            }
+            check(matched, `Paused renderer did not resize to ${width} × ${height}.`);
+            check(scene.dataset.motion === 'paused', 'Resizing changed the motion preference.');
+          }
+        } finally {
+          if (frameStyle === null) frame.removeAttribute('style');
+          else frame.setAttribute('style',frameStyle);
+        }
+        status.push('PASS: resize and orientation aspect ratios, including paused rendering.');
         const story = document.querySelector('[data-test-id="story"]');
         story.querySelector('summary').click();
         check(story.open && story.textContent.includes('three hours of computer access'), 'Story did not open.');
