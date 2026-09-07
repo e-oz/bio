@@ -58,7 +58,7 @@ export function createSceneFinish(renderer) {
     get samples(){return target.samples;},
     resize(width,height,narrow){
       compact=narrow;
-      const samples=Math.min(compact?2:4,renderer.capabilities.maxSamples);
+      const samples=Math.min(4,renderer.capabilities.maxSamples);
       if(target.samples!==samples){target.samples=samples;target.dispose();}
       composite.uniforms.uSmooth.value=samples>0?0:0.32;
       target.setSize(width,height);

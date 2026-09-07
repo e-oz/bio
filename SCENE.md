@@ -92,9 +92,9 @@ Compact layouts are those at or below `700px` viewport width.
 
 | Setting | Wide layout | Compact layout |
 | --- | --- | --- |
-| Drawing-buffer pixel budget | Approximately 3,200,000 | Approximately 460,000 |
-| Maximum pixel-ratio multiplier | 2 | 1.2 |
-| Scene-target MSAA | Up to 4 samples | Up to 2 samples |
+| Drawing-buffer pixel budget | Approximately 3,200,000 | Approximately 1,000,000 |
+| Maximum pixel-ratio multiplier | 2 | 1.71 |
+| Scene-target MSAA | Up to 4 samples | Up to 4 samples |
 | Reflection dimensions | 50% of drawing-buffer width and height | 35% of drawing-buffer width and height |
 | Ocean grid | 180 × 180 cells | 100 × 100 cells |
 | Manta rays | 5 | 3 |

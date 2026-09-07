@@ -1,7 +1,7 @@
 /** Keep the drawing buffer bounded independently of a device's pixel density. */
 export function drawingSize(width, height, pixelRatio, compact, quality = 1) {
-  const budget = (compact ? 460_000 : 3_200_000) * quality;
-  const scale = Math.min(pixelRatio, compact ? 1.2 : 2, Math.sqrt(budget / (width * height)));
+  const budget = (compact ? 1_000_000 : 3_200_000) * quality;
+  const scale = Math.min(pixelRatio, compact ? 1.71 : 2, Math.sqrt(budget / (width * height)));
   return { width: Math.max(1, Math.round(width * scale)), height: Math.max(1, Math.round(height * scale)) };
 }
 
@@ -26,8 +26,12 @@ export function shipFlightPath(orbit, exploration) {
   const amount = Math.max(0, Math.min(1, exploration));
   const envelope = 0.8 + amount * 0.3;
   return {
-    x: Math.sin(orbit + 0.32) * envelope,
-    y: Math.sin(orbit * 1.7 - 0.09) * envelope,
+    x: (Math.sin(orbit + 0.32) * 0.55
+      + Math.sin(orbit * 2.13 - 1.4) * 0.30
+      + Math.sin(orbit * 3.71 + 2.2) * 0.15) * envelope,
+    y: (Math.sin(orbit * 1.7 - 0.09) * 0.55
+      + Math.sin(orbit * 2.61 + 1.6) * 0.30
+      + Math.sin(orbit * 0.73 - 2.1) * 0.15) * envelope,
     envelope,
     viewDistance: 72 + Math.cos(orbit) * 8,
   };

@@ -1,9 +1,9 @@
 import * as THREE from './vendor/three.module.min.js';
-import { createAnimationClock, createFrameLimiter, dampingFactor } from './animation-clock.mjs?v=3d-19';
-import { drawingSize, sceneLayout, shipFlightPath } from './scene-math.mjs?v=3d-19';
-import { createSceneFinish } from './scene-finish.js?v=3d-19';
-import { createStarship, createManta, createParticles, createOceanGeometry, createRingProfile } from './scene-models.js?v=3d-19';
-import { worldVertex, skyFragment, planetFragment, ringFragment, oceanVertex, oceanFragment } from './scene-shaders.js?v=3d-19';
+import { createAnimationClock, createFrameLimiter, dampingFactor } from './animation-clock.mjs?v=3d-23';
+import { drawingSize, sceneLayout, shipFlightPath } from './scene-math.mjs?v=3d-23';
+import { createSceneFinish } from './scene-finish.js?v=3d-23';
+import { createStarship, createManta, createParticles, createOceanGeometry, createRingProfile } from './scene-models.js?v=3d-23';
+import { worldVertex, skyFragment, planetFragment, ringFragment, oceanVertex, oceanFragment } from './scene-shaders.js?v=3d-23';
 
 let renderer, scene, camera, reflectionCamera, reflectionTarget, ocean, planet, ship, shipBounds;
 let stars, motes, viewport, canvas, finish, layout;
@@ -54,6 +54,10 @@ function projectedShipBounds() {
     minY=Math.min(minY,shipBoundsCorner.y);maxY=Math.max(maxY,shipBoundsCorner.y);
   }
   return {minX:minX-shipOriginNdc.x,maxX:maxX-shipOriginNdc.x,minY:minY-shipOriginNdc.y,maxY:maxY-shipOriginNdc.y};
+}
+
+function mapFlightCoordinate(value,envelope,min,max) {
+  return min+(value+envelope)/(envelope*2)*(max-min);
 }
 
 function resize() {
@@ -165,8 +169,13 @@ function updateObjects(delta) {
   positionShip(0,0,shipPath.viewDistance);
   ship.group.updateMatrixWorld(true);
   const bounds=projectedShipBounds();
-  const screenX=Math.max(-shipPath.envelope-bounds.minX,Math.min(shipPath.envelope-bounds.maxX,shipPath.x));
-  const screenY=Math.max(shipHorizonNdc-bounds.minY,Math.min(shipPath.envelope-bounds.maxY,shipPath.y));
+  // Remapping avoids a hard border clamp, which would hold the ship at a corner while its target keeps moving.
+  const minScreenX=-shipPath.envelope-bounds.minX;
+  const maxScreenX=shipPath.envelope-bounds.maxX;
+  const minScreenY=shipHorizonNdc-bounds.minY;
+  const maxScreenY=shipPath.envelope-bounds.maxY;
+  const screenX=mapFlightCoordinate(shipPath.x,shipPath.envelope,minScreenX,maxScreenX);
+  const screenY=mapFlightCoordinate(shipPath.y,shipPath.envelope,minScreenY,maxScreenY);
   positionShip(screenX,screenY,shipPath.viewDistance);
   ship.update(elapsed);
   const paths=compact?
