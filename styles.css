@@ -208,6 +208,7 @@ body.is-exploring { overflow: hidden; }
   .wordmark { font-size: 2.7rem; }
   .site-header nav { gap: 1.25rem; font-size: .66rem; }
   .site-header nav a:last-child { gap: .25rem; }
+  .scene { inset: 0 0 auto; height: 100svh; min-height: 46rem; max-height: 64rem; }
   .scene-poster img { object-position: 68% 50%; }
   .scene-shade { background: linear-gradient(90deg, #041013a6, #04101310), linear-gradient(0deg, #071419ef, transparent 40%); }
   .hero { min-height: 46rem; height: 100svh; max-height: 64rem; padding-top: 7rem; padding-bottom: 10rem; justify-content: center; }

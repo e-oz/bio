@@ -27,7 +27,10 @@ try {
 } catch { /* Storage is optional; motion controls also work in restricted browsing modes. */ }
 
 function viewport() {
-  return { width: innerWidth, height: innerHeight, pixelRatio: devicePixelRatio || 1, compact: compactViewport.matches };
+  const compact = compactViewport.matches;
+  if (!compact) return { width: innerWidth, height: innerHeight, pixelRatio: devicePixelRatio || 1, compact };
+  const sceneBounds = scene.getBoundingClientRect();
+  return { width: sceneBounds.width, height: sceneBounds.height, pixelRatio: devicePixelRatio || 1, compact };
 }
 
 function updateMotion() {
@@ -60,7 +63,7 @@ function startScene() {
   if (!('Worker' in window) || !canvas.transferControlToOffscreen) { useStillScene(); return; }
   starting = true;
   try {
-    worker = new Worker(new URL('./scene-worker.js?v=3d-16', import.meta.url), { type: 'module', name: 'pelagic-orbit' });
+    worker = new Worker(new URL('./scene-worker.js?v=3d-17', import.meta.url), { type: 'module', name: 'pelagic-orbit' });
     worker.addEventListener('error', useStillScene);
     worker.addEventListener('message', event => {
       if (event.data.type === 'ready') {
