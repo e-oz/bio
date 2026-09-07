@@ -1,9 +1,9 @@
 import * as THREE from './vendor/three.module.min.js';
-import { createAnimationClock, createFrameLimiter, dampingFactor } from './animation-clock.mjs?v=3d-15';
-import { drawingSize, sceneLayout } from './scene-math.mjs?v=3d-15';
-import { createSceneFinish } from './scene-finish.js?v=3d-15';
-import { createStarship, createManta, createParticles, createOceanGeometry, createRingProfile } from './scene-models.js?v=3d-15';
-import { worldVertex, skyFragment, planetFragment, ringFragment, oceanVertex, oceanFragment } from './scene-shaders.js?v=3d-15';
+import { createAnimationClock, createFrameLimiter, dampingFactor } from './animation-clock.mjs?v=3d-16';
+import { drawingSize, sceneLayout } from './scene-math.mjs?v=3d-16';
+import { createSceneFinish } from './scene-finish.js?v=3d-16';
+import { createStarship, createManta, createParticles, createOceanGeometry, createRingProfile } from './scene-models.js?v=3d-16';
+import { worldVertex, skyFragment, planetFragment, ringFragment, oceanVertex, oceanFragment } from './scene-shaders.js?v=3d-16';
 
 let renderer, scene, camera, reflectionCamera, reflectionTarget, ocean, planet, ship;
 let stars, motes, viewport, canvas, finish, layout;
@@ -220,5 +220,5 @@ self.addEventListener('message',event=>{
     if(!running){cancelScheduledFrame();animationClock.pause();}
   }
   if(message.type==='pointer')targetPointer.set(...message.value);
-  if(message.type==='resize'){viewport=message.viewport;if(initialized){resize();if(!running)render(0);}}
+  if(message.type==='resize'){viewport=message.viewport;if(initialized){resize();render(0);}}
 });
