@@ -1,6 +1,6 @@
 import * as THREE from './vendor/three.module.min.js';
 import { mergeGeometries } from './vendor/BufferGeometryUtils.js';
-import { mantaVertex, mantaFragment, pointVertex, pointFragment } from './scene-shaders.js?v=3d-23';
+import { mantaVertex, mantaFragment, pointVertex, pointFragment } from './scene-shaders.js?v=3d-27';
 
 /** Seeded placement keeps the composition stable across reloads and quality changes. */
 export function randomSequence(seed) {
@@ -85,113 +85,84 @@ export function pressureHull(sections) {
   return geometry;
 }
 
-/** Graphite survey vessel: pressure hull, open truss, radiators, centrifuge, and ion drives. */
+/** A sheltered observatory inside three independently rotating field-drive rings. */
 export function createStarship() {
-  const hull = new THREE.MeshStandardMaterial({color:0x283943,metalness:0.72,roughness:0.37,flatShading:true});
-  const armor = new THREE.MeshStandardMaterial({color:0x465158,metalness:0.8,roughness:0.31,flatShading:true});
-  const carbon = new THREE.MeshStandardMaterial({color:0x0c171d,metalness:0.55,roughness:0.56});
-  const bronze = new THREE.MeshStandardMaterial({color:0x76634b,metalness:0.78,roughness:0.43});
-  const glass = new THREE.MeshStandardMaterial({color:0x07181f,metalness:0.85,roughness:0.13,emissive:0x123e48,emissiveIntensity:0.3});
-  const cyan = new THREE.MeshBasicMaterial({color:new THREE.Color(0.10,0.8,1.4)});
-  const amber = new THREE.MeshBasicMaterial({color:new THREE.Color(1.2,0.48,0.10)});
+  const hull = new THREE.MeshStandardMaterial({color:0x283943,metalness:0.65,roughness:0.38,emissive:0x12303c,emissiveIntensity:0.08});
+  const armor = new THREE.MeshStandardMaterial({color:0x465158,metalness:0.72,roughness:0.32,emissive:0x204854,emissiveIntensity:0.08});
+  const carbon = new THREE.MeshStandardMaterial({color:0x142730,metalness:0.5,roughness:0.48});
+  const bronze = new THREE.MeshStandardMaterial({color:0x786e58,metalness:0.7,roughness:0.4});
+  const glass = new THREE.MeshStandardMaterial({color:0x29424b,metalness:0.65,roughness:0.19,emissive:0x42707a,emissiveIntensity:0.18});
+  const cyan = new THREE.MeshBasicMaterial({color:new THREE.Color(0.045,0.38,0.55)});
+  const warm = new THREE.MeshBasicMaterial({color:new THREE.Color(0.72,0.46,0.22)});
   const batch = geometryBatch();
-  const box=(size,material,position,rotation)=>batch.add(new THREE.BoxGeometry(...size),material,position,rotation);
-  const cylinder=(r1,r2,length,material,position,rotation=[0,0,Math.PI/2],segments=12)=>
-    batch.add(new THREE.CylinderGeometry(r1,r2,length,segments),material,position,rotation);
-  const strut=(start,end,radius=0.045,material=armor)=>{
-    const a=new THREE.Vector3(...start), b=new THREE.Vector3(...end);
-    const geometry=new THREE.CylinderGeometry(radius,radius,a.distanceTo(b),6);
-    const quaternion=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),b.clone().sub(a).normalize());
-    geometry.applyQuaternion(quaternion);
-    batch.add(geometry,material,a.add(b).multiplyScalar(0.5).toArray());
-  };
+  const sphere=(radius,material,position,scale)=>batch.add(new THREE.SphereGeometry(radius,48,24),material,position,[0,0,0],scale);
+  const torus=(radius,tube,material,y,scale=[1,1,1])=>batch.add(new THREE.TorusGeometry(radius,tube,8,96),material,[0,y,0],[Math.PI/2,0,0],scale);
 
-  batch.add(pressureHull([[-8,0.12,0.24,0],[-6.1,0.48,0.92,0.13],[-3.2,0.75,1.18,0.1],[-1.4,0.69,0.94,0.0]]),hull);
-  batch.add(pressureHull([[-6.7,0.1,0.46,0.4],[-4.4,0.18,0.81,0.65],[-2.5,0.24,0.69,0.64]]),armor);
-  batch.add(pressureHull([[-6.3,0.09,0.43,0.5],[-5.6,0.16,0.65,0.58],[-4.9,0.14,0.69,0.59]]),glass);
-  box([3.7,0.09,0.48],carbon,[-3.7,0.94,0]);
-  for (const side of [-1,1]) {
-    box([2.4,0.16,0.035],bronze,[-3.15,0.28,side*1.045],[side*0.13,0,0]);
-    for (let panel=0; panel<7; panel++) {
-      box([0.29,0.03,1.16],armor,[-4.7+panel*0.42,0.92,side*0.03],[0,0,-0.04]);
-      box([0.16,0.038,0.04],cyan,[-5.9+panel*0.22,0.58,side*(0.63+panel*0.022)]);
+  sphere(1,hull,[0,-0.28,0],[2.85,1.05,2.45]);
+  batch.add(new THREE.CylinderGeometry(2.35,2.45,0.65,64),glass,[0,0.35,0],[0,0,0],[1.13,1,1]);
+  sphere(1,armor,[0,0.73,0],[2.76,0.66,2.4]);
+  torus(2.42,0.085,carbon,0.04,[1.13,1,1]);
+  torus(2.35,0.075,armor,0.68,[1.13,1,1]);
+  torus(2.44,0.025,cyan,-0.05,[1.13,1,1]);
+  torus(1.48,0.025,cyan,1.28,[1.13,1,1]);
+  sphere(1,carbon,[0,1.31,0],[0.8,0.19,0.8]);
+  torus(0.66,0.035,armor,1.47);
+  for(let index=0;index<36;index++) {
+    const angle=index*Math.PI/18;
+    const x=Math.cos(angle),z=Math.sin(angle);
+    batch.add(new THREE.BoxGeometry(0.075,0.65,0.08),armor,[x*2.7,0.35,z*2.39],[0,-angle,0]);
+    if(index%3!==0) {
+      batch.add(new THREE.BoxGeometry(0.23,0.27,0.018),warm,[x*2.72,0.32,z*2.405],[0,Math.PI/2-angle,0]);
     }
-    // The spine carries tensile loads between the habitable bow and the propulsion assembly.
-    for (const y of [-0.48,0.48]) strut([-1.5,y,side*0.65],[5.8,y,side*0.65],0.075);
-    for (let frame=0; frame<7; frame++) {
-      const x=-1.2+frame;
-      strut([x,-0.48,side*0.65],[x+1,0.48,side*0.65]);
-      strut([x,0.48,side*0.65],[x+1,-0.48,side*0.65]);
-      strut([x,-0.48,-0.65],[x,-0.48,0.65]);
-    }
-    cylinder(0.37,0.37,2.5,carbon,[2.0,-0.08,side*0.57]);
-    cylinder(0.29,0.29,1.9,armor,[-0.1,-0.12,side*0.92]);
-    for (let band=0; band<4; band++) cylinder(0.395,0.395,0.08,bronze,[1.0+band*0.66,-0.08,side*0.57]);
-    // Thin segmented panels expose a large radiating area without enclosing the engine truss.
-    for (let panel=0; panel<3; panel++) {
-      const x=0.2+panel*1.45;
-      box([1.3,0.065,2.8],carbon,[x,0.25,side*2.35],[side*-0.17,0,0.08]);
-      for (let fin=0; fin<9; fin++) box([0.028,0.075,2.72],bronze,[x-0.55+fin*0.137,0.25,side*2.35],[side*-0.17,0,0.08]);
-      box([1.33,0.09,0.065],armor,[x,0.48,side*3.72]);
-    }
-    strut([3.4,0,side*0.6],[4.4,-0.24,side*2.8],0.22,hull);
-    strut([5.8,0,side*0.6],[6.2,-0.24,side*2.8],0.17,armor);
-    cylinder(0.60,0.43,3.9,hull,[5.0,-0.24,side*2.8]);
-    cylinder(0.64,0.64,0.14,bronze,[5.7,-0.24,side*2.8]);
-    cylinder(0.73,0.47,1.15,carbon,[7.0,-0.24,side*2.8]);
-    cylinder(0.75,0.75,0.1,armor,[7.58,-0.24,side*2.8]);
-    cylinder(0.53,0.53,0.018,cyan,[7.65,-0.24,side*2.8]);
-    for (let ring=0; ring<9; ring++) cylinder(0.615,0.615,0.038,armor,[3.35+ring*0.23,-0.24,side*2.8]);
-    for (let rib=0; rib<8; rib++) {
-      const a=rib*Math.PI/4;
-      box([1.1,0.075,0.075],bronze,[6.97,-0.24+Math.sin(a)*0.60,side*2.8+Math.cos(a)*0.60]);
-    }
-    box([0.12,0.12,0.12],side===1?cyan:amber,[2.8,0.47,side*3.75]);
   }
-  cylinder(0.57,0.48,2.3,hull,[5.6,0,0]);
-  strut([-3.4,0.9,0],[-3.1,2.0,0],0.05);
-  strut([-3.1,2.0,-0.7],[-3.1,2.0,0.7],0.024);
-  strut([-7.7,0,0],[-9.0,0,0],0.025);
-  cylinder(0.45,0.18,0.15,armor,[-2.1,1.27,0],[0,0,-0.42],24);
-  box([0.07,0.1,0.07],amber,[-3.1,2.06,0]);
-  const group=batch.finish();
-  group.name='Survey vessel';
-
-  const centrifuge=new THREE.Group();
-  const ring=new THREE.Mesh(new THREE.TorusGeometry(1.48,0.17,8,56),armor);
-  ring.rotation.y=Math.PI/2;
-  centrifuge.add(ring);
-  for(let i=0;i<4;i++) {
-    const spoke=new THREE.Mesh(new THREE.BoxGeometry(0.12,2.9,0.12),carbon);
-    spoke.rotation.x=i*Math.PI/4;
-    centrifuge.add(spoke);
-    const pod=new THREE.Mesh(new THREE.BoxGeometry(0.55,0.38,0.52),hull);
-    pod.position.set(0,Math.cos(i*Math.PI/2)*1.48,Math.sin(i*Math.PI/2)*1.48);
-    pod.rotation.x=i*Math.PI/2;
-    centrifuge.add(pod);
-  }
-  centrifuge.position.x=-0.65;
-  group.add(centrifuge);
-  const exhaustMaterial=new THREE.ShaderMaterial({
-    uniforms:{uTime:{value:0}},
-    vertexShader:'varying vec2 vUv; void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
-    fragmentShader:/* glsl */`uniform float uTime; varying vec2 vUv;
-      void main(){
-        float core=pow(1.0-vUv.y,2.4);
-        float stream=0.75+0.25*sin(vUv.y*48.0-uTime*12.0);
-        gl_FragColor=vec4(vec3(0.09,0.46,0.85)*core,core*0.22*stream);
-        #include <tonemapping_fragment>
-        #include <colorspace_fragment>
-      }`,
-    transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide,
-  });
   for(const side of [-1,1]) {
-    const plume=new THREE.Mesh(new THREE.CylinderGeometry(0.10,0.50,4.2,20,8,true),exhaustMaterial);
-    plume.rotation.z=-Math.PI/2;
-    plume.position.set(9.7,-0.24,side*2.8);
-    group.add(plume);
+    sphere(1,hull,[side*1.7,-1.04,0],[0.85,0.35,1.08]);
+    batch.add(new THREE.TorusGeometry(0.64,0.035,8,40),cyan,[side*1.7,-1.25,0],[Math.PI/2,0,0],[1,1.3,1]);
+    batch.add(new THREE.CylinderGeometry(0.17,0.24,1.2,12),bronze,[side*2.8,0,0],[0,0,Math.PI/2]);
+    sphere(0.34,armor,[side*3.25,0,0],[1,1,1]);
   }
-  return {group,update(time){centrifuge.rotation.x=time*0.16;exhaustMaterial.uniforms.uTime.value=time;}};
+  const cabin=batch.finish();
+  cabin.name='Observation cabin';
+  const group=new THREE.Group();
+  group.add(cabin);
+  group.name='Survey vessel';
+  const rings=[];
+  for(let index=0;index<3;index++) {
+    const radius=3.5+index*0.6;
+    const ringBatch=geometryBatch();
+    ringBatch.add(new THREE.TorusGeometry(radius,0.22,10,128),hull);
+    for(const side of [-1,1]) {
+      ringBatch.add(new THREE.TorusGeometry(radius,0.036,6,128),armor,[0,0,side*0.22]);
+    }
+    for(let segment=0;segment<32;segment++) {
+      const angle=segment*Math.PI/16;
+      const arc=Math.PI/16*0.72;
+      for(const side of [-1,1]) {
+        ringBatch.add(new THREE.TorusGeometry(radius,0.026,6,8,arc),cyan,[0,0,side*0.234],[0,0,angle]);
+      }
+      ringBatch.add(new THREE.BoxGeometry(0.5,0.075,0.5),segment%4===0?armor:carbon,[Math.cos(angle)*radius,Math.sin(angle)*radius,0],[0,0,angle]);
+      if(segment%8===0) {
+        ringBatch.add(new THREE.BoxGeometry(0.52,0.34,0.56),armor,[Math.cos(angle)*radius,Math.sin(angle)*radius,0],[0,0,angle]);
+        ringBatch.add(new THREE.BoxGeometry(0.24,0.12,0.018),cyan,[Math.cos(angle)*radius,Math.sin(angle)*radius,0.29],[0,0,angle]);
+      }
+    }
+    const rotor=ringBatch.finish();
+    const gimbal=new THREE.Group();
+    gimbal.add(rotor);
+    group.add(gimbal);
+    rings.push({gimbal,rotor});
+  }
+  const update=(time)=>{
+    cabin.rotation.y=time*0.045;
+    rings.forEach(({gimbal,rotor},index)=>{
+      gimbal.rotation.set([0.28,1.05,-0.88][index]+Math.sin(time*0.075+index)*0.18,index*0.58+Math.sin(time*0.055)*0.2,index*0.42);
+      rotor.rotation.z=time*[0.24,-0.18,0.135][index]+index*0.7;
+    });
+  };
+  update(0);
+  // The full swept volume keeps every ring inside the flight envelope at any orientation.
+  const bounds=new THREE.Box3(new THREE.Vector3(-5.1,-5.1,-5.1),new THREE.Vector3(5.1,5.1,5.1));
+  return {group,bounds,update};
 }
 
 /** Flexible wings are a continuous surface, with a thick body, eyes, lobes, and a trailing tail. */

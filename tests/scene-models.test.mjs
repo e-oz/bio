@@ -83,3 +83,45 @@ test('procedural particle placement is reproducible and remains in the unit inte
     assert.ok(value >= 0 && value < 1);
   }
 });
+
+
+test('all three field rings rotate independently within their swept flight bounds', () => {
+  const vessel=createStarship();
+  const rings=vessel.group.children.filter(object=>object.isGroup && object.children[0]?.isGroup);
+  assert.equal(rings.length,3);
+  const initial=rings.map(ring=>ring.children[0].rotation.z);
+  vessel.update(8);
+  const advanced=rings.map(ring=>ring.children[0].rotation.z);
+  advanced.forEach((angle,index)=>assert.notEqual(angle,initial[index]));
+  assert.ok(advanced[0]>initial[0] && advanced[1]<initial[1]);
+  for(const time of [0,8,30,90,600,86400]) {
+    vessel.update(time);
+    vessel.group.updateMatrixWorld(true);
+    const point=new Vector3();
+    vessel.group.traverse(object=>{
+      if(!object.geometry) return;
+      const positions=object.geometry.attributes.position;
+      for(let index=0;index<positions.count;index++) {
+        point.fromBufferAttribute(positions,index).applyMatrix4(object.matrixWorld);
+        assert.ok(vessel.bounds.containsPoint(point));
+      }
+    });
+  }
+  vessel.update(8);
+  assert.deepEqual(rings.map(ring=>ring.children[0].rotation.z),advanced);
+});
+
+
+test('the cabin turns slowly around its vertical axis with deterministic timing', () => {
+  const vessel=createStarship();
+  const cabin=vessel.group.getObjectByName('Observation cabin');
+  vessel.update(10);
+  assert.equal(cabin.rotation.x,0);
+  assert.equal(cabin.rotation.z,0);
+  assert.ok(cabin.rotation.y>0 && cabin.rotation.y<1);
+  const angle=cabin.rotation.y;
+  vessel.update(20);
+  assert.equal(cabin.rotation.y,angle*2);
+  vessel.update(10);
+  assert.equal(cabin.rotation.y,angle);
+});

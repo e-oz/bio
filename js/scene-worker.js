@@ -1,9 +1,9 @@
 import * as THREE from './vendor/three.module.min.js';
-import { createAnimationClock, createFrameLimiter, dampingFactor } from './animation-clock.mjs?v=3d-23';
-import { drawingSize, sceneLayout, shipFlightPath } from './scene-math.mjs?v=3d-23';
-import { createSceneFinish } from './scene-finish.js?v=3d-23';
-import { createStarship, createManta, createParticles, createOceanGeometry, createRingProfile } from './scene-models.js?v=3d-23';
-import { worldVertex, skyFragment, planetFragment, ringFragment, oceanVertex, oceanFragment } from './scene-shaders.js?v=3d-23';
+import { createAnimationClock, createFrameLimiter, dampingFactor } from './animation-clock.mjs?v=3d-27';
+import { drawingSize, sceneLayout, shipFlightPath } from './scene-math.mjs?v=3d-27';
+import { createSceneFinish } from './scene-finish.js?v=3d-27';
+import { createStarship, createManta, createParticles, createOceanGeometry, createRingProfile } from './scene-models.js?v=3d-27';
+import { worldVertex, skyFragment, planetFragment, ringFragment, oceanVertex, oceanFragment } from './scene-shaders.js?v=3d-27';
 
 let renderer, scene, camera, reflectionCamera, reflectionTarget, ocean, planet, ship, shipBounds;
 let stars, motes, viewport, canvas, finish, layout;
@@ -124,7 +124,7 @@ async function initialize(message) {
   rimLight.position.set(-30,12,-45);scene.add(rimLight);
   const warmLight=new THREE.DirectionalLight(0xd69d67,1.0);
   warmLight.position.set(70,6,-110);scene.add(warmLight);
-  ship=createStarship();shipBounds=new THREE.Box3().setFromObject(ship.group);scene.add(ship.group);
+  ship=createStarship();shipBounds=ship.bounds;scene.add(ship.group);
 
   for(let index=0;index<5;index++) {
     const manta=createManta(index*1.93);
