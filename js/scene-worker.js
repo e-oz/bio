@@ -1,11 +1,11 @@
 import * as THREE from './vendor/three.module.min.js';
-import { createAnimationClock, createFrameLimiter, dampingFactor } from './animation-clock.mjs?v=3d-17';
-import { drawingSize, sceneLayout } from './scene-math.mjs?v=3d-17';
-import { createSceneFinish } from './scene-finish.js?v=3d-17';
-import { createStarship, createManta, createParticles, createOceanGeometry, createRingProfile } from './scene-models.js?v=3d-17';
-import { worldVertex, skyFragment, planetFragment, ringFragment, oceanVertex, oceanFragment } from './scene-shaders.js?v=3d-17';
+import { createAnimationClock, createFrameLimiter, dampingFactor } from './animation-clock.mjs?v=3d-19';
+import { drawingSize, sceneLayout, shipFlightPath } from './scene-math.mjs?v=3d-19';
+import { createSceneFinish } from './scene-finish.js?v=3d-19';
+import { createStarship, createManta, createParticles, createOceanGeometry, createRingProfile } from './scene-models.js?v=3d-19';
+import { worldVertex, skyFragment, planetFragment, ringFragment, oceanVertex, oceanFragment } from './scene-shaders.js?v=3d-19';
 
-let renderer, scene, camera, reflectionCamera, reflectionTarget, ocean, planet, ship;
+let renderer, scene, camera, reflectionCamera, reflectionTarget, ocean, planet, ship, shipBounds;
 let stars, motes, viewport, canvas, finish, layout;
 let running=false, initialized=false, failed=false, timer;
 let elapsed=0, frameNumber=0;
@@ -23,6 +23,9 @@ const sunDirection=new THREE.Vector3(0.54,0.017,-1).normalize();
 const reflectionMatrix=new THREE.Matrix4();
 const biasMatrix=new THREE.Matrix4().set(0.5,0,0,0.5, 0,0.5,0,0.5, 0,0,0.5,0.5, 0,0,0,1);
 const lookTarget=new THREE.Vector3(), reflectedTarget=new THREE.Vector3();
+const shipRay=new THREE.Vector3(), viewDirection=new THREE.Vector3();
+const shipBoundsCorner=new THREE.Vector3(), shipOriginNdc=new THREE.Vector3();
+const shipHorizonNdc=-0.14;
 
 function unavailable(error) {
   if(failed)return;
@@ -33,6 +36,24 @@ function unavailable(error) {
 
 function shader(fragmentShader,uniforms={},options={}) {
   return new THREE.ShaderMaterial({vertexShader:worldVertex,fragmentShader,uniforms,...options});
+}
+
+function positionShip(screenX,screenY,viewDistance) {
+  camera.getWorldDirection(viewDirection);
+  shipRay.set(screenX,screenY,0.5).unproject(camera).sub(camera.position).normalize();
+  ship.group.position.copy(camera.position).addScaledVector(shipRay,viewDistance/Math.max(0.1,shipRay.dot(viewDirection)));
+}
+
+function projectedShipBounds() {
+  const min=shipBounds.min,max=shipBounds.max;
+  shipOriginNdc.copy(ship.group.position).project(camera);
+  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+  for(const x of [min.x,max.x]) for(const y of [min.y,max.y]) for(const z of [min.z,max.z]) {
+    shipBoundsCorner.set(x,y,z).applyMatrix4(ship.group.matrixWorld).project(camera);
+    minX=Math.min(minX,shipBoundsCorner.x);maxX=Math.max(maxX,shipBoundsCorner.x);
+    minY=Math.min(minY,shipBoundsCorner.y);maxY=Math.max(maxY,shipBoundsCorner.y);
+  }
+  return {minX:minX-shipOriginNdc.x,maxX:maxX-shipOriginNdc.x,minY:minY-shipOriginNdc.y,maxY:maxY-shipOriginNdc.y};
 }
 
 function resize() {
@@ -99,7 +120,7 @@ async function initialize(message) {
   rimLight.position.set(-30,12,-45);scene.add(rimLight);
   const warmLight=new THREE.DirectionalLight(0xd69d67,1.0);
   warmLight.position.set(70,6,-110);scene.add(warmLight);
-  ship=createStarship();scene.add(ship.group);
+  ship=createStarship();shipBounds=new THREE.Box3().setFromObject(ship.group);scene.add(ship.group);
 
   for(let index=0;index<5;index++) {
     const manta=createManta(index*1.93);
@@ -138,9 +159,15 @@ function updateObjects(delta) {
   const compact=viewport.compact;
   // A shallow elliptical survey circuit changes the visible bow, flank, and engine geometry.
   const orbit=elapsed*0.045;
-  ship.group.position.set(layout.shipX+Math.sin(orbit)*(compact?5:8),10.5+Math.sin(orbit*1.7)*1.2,-51+Math.cos(orbit)*8);
+  const shipPath=shipFlightPath(orbit,exploration);
   ship.group.rotation.set(0.48+Math.sin(orbit*1.3)*0.12,-0.40+Math.sin(orbit)*0.55,-0.13+Math.cos(orbit)*0.075);
   ship.group.scale.setScalar(compact?0.49:0.85);
+  positionShip(0,0,shipPath.viewDistance);
+  ship.group.updateMatrixWorld(true);
+  const bounds=projectedShipBounds();
+  const screenX=Math.max(-shipPath.envelope-bounds.minX,Math.min(shipPath.envelope-bounds.maxX,shipPath.x));
+  const screenY=Math.max(shipHorizonNdc-bounds.minY,Math.min(shipPath.envelope-bounds.maxY,shipPath.y));
+  positionShip(screenX,screenY,shipPath.viewDistance);
   ship.update(elapsed);
   const paths=compact?
     [[layout.mantaX,2.8,-1,0.62],[-6,3.7,-19,0.40],[6,2.6,-35,0.33]]:

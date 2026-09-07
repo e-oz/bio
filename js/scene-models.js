@@ -1,6 +1,6 @@
 import * as THREE from './vendor/three.module.min.js';
 import { mergeGeometries } from './vendor/BufferGeometryUtils.js';
-import { mantaVertex, mantaFragment, pointVertex, pointFragment } from './scene-shaders.js?v=3d-17';
+import { mantaVertex, mantaFragment, pointVertex, pointFragment } from './scene-shaders.js?v=3d-19';
 
 /** Seeded placement keeps the composition stable across reloads and quality changes. */
 export function randomSequence(seed) {

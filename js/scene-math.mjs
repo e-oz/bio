@@ -21,6 +21,18 @@ export function sceneLayout(width, height, compact) {
   };
 }
 
+/** Keep the vessel's screen-space flight envelope at 80% in page mode and 110% in exploration. */
+export function shipFlightPath(orbit, exploration) {
+  const amount = Math.max(0, Math.min(1, exploration));
+  const envelope = 0.8 + amount * 0.3;
+  return {
+    x: Math.sin(orbit + 0.32) * envelope,
+    y: Math.sin(orbit * 1.7 - 0.09) * envelope,
+    envelope,
+    viewDistance: 72 + Math.cos(orbit) * 8,
+  };
+}
+
 /** Match the poster's object-fit: cover, including the mobile focal point. */
 export function coverTransform(width, height, imageWidth, imageHeight, compact) {
   const scale = Math.max(width / imageWidth, height / imageHeight);

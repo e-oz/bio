@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cameraTransform, coverTransform, drawingSize } from '../js/scene-math.mjs';
+import { cameraTransform, coverTransform, drawingSize, shipFlightPath } from '../js/scene-math.mjs';
 
 const screens = [[320, 568, 3], [390, 844, 3], [430, 932, 3], [844, 390, 3], [768, 1024, 2], [1280, 720, 1], [1920, 1080, 2], [3840, 2160, 2]];
 
@@ -23,6 +23,24 @@ test('quality reduction lowers memory and rendering work without changing compos
   const reduced = drawingSize(1920, 1080, 2, false, 0.5);
   assert.ok(reduced.width * reduced.height < full.width * full.height * 0.51);
   assert.ok(Math.abs(full.width / full.height - reduced.width / reduced.height) < 0.01);
+});
+
+test('ship flight path uses the requested page and exploration envelopes', () => {
+  for (const [exploration, envelope] of [[0, 0.8], [1, 1.1]]) {
+    let maximumX = 0;
+    let maximumY = 0;
+    for (let index = 0; index <= 720; index += 1) {
+      const path = shipFlightPath(index / 720 * Math.PI * 2, exploration);
+      maximumX = Math.max(maximumX, Math.abs(path.x));
+      maximumY = Math.max(maximumY, Math.abs(path.y));
+      assert.equal(path.envelope, envelope);
+      assert.ok(Math.abs(path.x) <= envelope + 1e-10);
+      assert.ok(Math.abs(path.y) <= envelope + 1e-10);
+      assert.ok(path.viewDistance >= 64 && path.viewDistance <= 80);
+    }
+    assert.ok(Math.abs(maximumX - envelope) < 0.001);
+    assert.ok(Math.abs(maximumY - envelope) < 0.001);
+  }
 });
 
 test('cover coordinates stay inside the image in portrait, landscape, and ultrawide layouts', () => {
