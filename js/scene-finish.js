@@ -56,6 +56,16 @@ export function createSceneFinish(renderer) {
   let compact=false;
   return {
     get samples(){return target.samples;},
+    compileAsync(){
+      const previousTarget=renderer.getRenderTarget(),previousMaterial=quad.material;
+      let blurCompilation;
+      try {
+        if(!compact){quad.material=blur;renderer.setRenderTarget(glowA);blurCompilation=renderer.compileAsync(scene,camera);}
+        quad.material=composite;renderer.setRenderTarget(null);
+        const compositeCompilation=renderer.compileAsync(scene,camera);
+        return Promise.all([blurCompilation,compositeCompilation]);
+      }finally{quad.material=previousMaterial;renderer.setRenderTarget(previousTarget);}
+    },
     resize(width,height,narrow){
       compact=narrow;
       const samples=Math.min(4,renderer.capabilities.maxSamples);

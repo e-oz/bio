@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Box3, Vector3 } from '../js/vendor/three.module.min.js';
+import { Box3, Vector3, Matrix4, SphereGeometry } from '../js/vendor/three.module.min.js';
 import { createStarship, createManta, createOceanGeometry, pressureHull, randomSequence } from '../js/scene-models.js';
 import { sceneLayout } from '../js/scene-math.mjs';
 
@@ -155,4 +155,82 @@ test('ring gimbals turn continuously around the third axis at independent rates'
   rings.forEach((ring,index)=>assert.ok(Math.abs(ring.rotation.y-(initial[index]+turned[index])/2)<1e-12));
   vessel.update(400);
   assert.deepEqual(rings.map(ring=>ring.rotation.y),turned);
+});
+
+test('material batches retain every vessel and manta triangle', () => {
+  for (const { model, triangles, meshCount, materialMeshes } of [
+    { model: createStarship(), triangles: 62_256, meshCount: 19, materialMeshes: [1, 1, 1, 4, 4, 4, 4] },
+    { model: createManta(0), triangles: 3_456, meshCount: 3, materialMeshes: [1, 1, 1] },
+  ]) {
+    const meshes = model.group.getObjectsByProperty('isMesh', true);
+    assert.equal(meshes.length, meshCount);
+    const materials = [...new Set(meshes.map(mesh => mesh.material))];
+    assert.deepEqual(materials.map(material => meshes.filter(mesh => mesh.material === material).length).toSorted((a, b) => a - b), materialMeshes);
+    let triangleCount = 0;
+    for (const mesh of meshes) {
+      const geometry = mesh.geometry;
+      assert.ok(geometry.index);
+      assert.ok(!Array.isArray(mesh.material));
+      assert.equal(geometry.index.count % 3, 0);
+      const vertexCount = geometry.attributes.position.count;
+      assert.ok(geometry.index.array.every(index => Number.isInteger(index) && index >= 0 && index < vertexCount));
+      for (const [name, itemSize] of [['position', 3], ['normal', 3], ['uv', 2]]) {
+        const attribute = geometry.attributes[name];
+        assert.ok(attribute);
+        assert.equal(attribute.itemSize, itemSize);
+        assert.equal(attribute.count, vertexCount);
+        assert.ok(attribute.array.every(Number.isFinite));
+      }
+      triangleCount += geometry.index.count / 3;
+    }
+    assert.equal(triangleCount, triangles);
+  }
+});
+
+test('batched hull and manta body retain the source sphere triangle attributes', () => {
+  const ship = createStarship();
+  const cabin = ship.group.getObjectByName('Observation cabin');
+  const hull = cabin.children.find(object => object.material.color.getHex() === 0x283943);
+  const manta = createManta(0);
+  const anatomy = manta.group.children.find(object => object.isGroup);
+  const body = anatomy.children.find(object => object.material.isMeshStandardMaterial);
+  for (const { label, mesh, segments, scale, position } of [
+    { label: 'hull', mesh: hull, segments: [48, 24], scale: [2.85, 1.05, 2.45], position: [0, -0.28, 0] },
+    { label: 'body', mesh: body, segments: [20, 12], scale: [0.48, 0.24, 1.13], position: [0, 0, 0.05] },
+  ]) {
+    const reference = new SphereGeometry(1, ...segments).toNonIndexed();
+    reference.applyMatrix4(new Matrix4().makeScale(...scale).setPosition(...position));
+    const expanded = mesh.geometry.toNonIndexed();
+    for (const name of ['position', 'normal', 'uv']) {
+      const expected = reference.attributes[name].array;
+      const actual = expanded.attributes[name].array;
+      assert.ok(actual.length >= expected.length);
+      assert.ok(expected.every((value, index) => Object.is(actual[index], value)), `${label} ${name} triangle stream differs`);
+    }
+    reference.dispose();
+    expanded.dispose();
+  }
+});
+
+test('wing culling bounds contain every deformation extremum without moving the sort center', () => {
+  for (const phase of [0, 1.93, 3.86, 5.79, 7.72]) {
+    const manta = createManta(phase);
+    const wings = manta.group.children.find(object => object.material?.isShaderMaterial);
+    const positions = wings.geometry.attributes.position;
+    const sphere = wings.geometry.boundingSphere;
+    assert.ok(sphere);
+    assert.ok(Number.isFinite(sphere.radius) && sphere.radius > 0);
+    const originalCenter = new Box3().setFromBufferAttribute(positions).getCenter(new Vector3());
+    assert.deepEqual(sphere.center, originalCenter);
+    assert.equal(wings.frustumCulled, true);
+    const point = new Vector3();
+    for (let index = 0; index < positions.count; index++) {
+      const x = positions.getX(index), y = positions.getY(index), z = positions.getZ(index);
+      const amplitude = Math.pow(Math.abs(x) / 3.4, 1.6);
+      for (const vertical of [-1, 1]) for (const longitudinal of [-1, 1]) {
+        point.set(x, y + vertical * amplitude * 1.25, z + longitudinal * amplitude * 0.22);
+        assert.ok(sphere.containsPoint(point), `phase ${phase}, vertex ${index} exceeds its culling sphere`);
+      }
+    }
+  }
 });

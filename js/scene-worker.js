@@ -1,9 +1,9 @@
 import * as THREE from './vendor/three.module.min.js';
-import { createAnimationClock, createFrameLimiter, dampingFactor } from './animation-clock.mjs?v=3d-32';
-import { drawingSize, sceneLayout, shipFlightPath } from './scene-math.mjs?v=3d-32';
-import { createSceneFinish } from './scene-finish.js?v=3d-32';
-import { createStarship, createManta, createParticles, createOceanGeometry, createRingProfile } from './scene-models.js?v=3d-32';
-import { worldVertex, skyFragment, planetFragment, ringFragment, oceanVertex, oceanFragment } from './scene-shaders.js?v=3d-32';
+import { createAnimationClock, createFrameLimiter, dampingFactor } from './animation-clock.mjs?v=3d-33';
+import { drawingSize, sceneLayout, shipFlightPath } from './scene-math.mjs?v=3d-33';
+import { createSceneFinish } from './scene-finish.js?v=3d-33';
+import { createStarship, createManta, createParticles, createOceanGeometry, createRingProfile } from './scene-models.js?v=3d-33';
+import { worldVertex, skyFragment, planetFragment, ringFragment, oceanVertex, oceanFragment } from './scene-shaders.js?v=3d-33';
 
 let renderer, scene, camera, reflectionCamera, reflectionTarget, ocean, planet, ship, shipBounds;
 let stars, motes, viewport, canvas, finish, layout;
@@ -39,7 +39,6 @@ function shader(fragmentShader,uniforms={},options={}) {
 }
 
 function positionShip(screenX,screenY,viewDistance) {
-  camera.getWorldDirection(viewDirection);
   shipRay.set(screenX,screenY,0.5).unproject(camera).sub(camera.position).normalize();
   ship.group.position.copy(camera.position).addScaledVector(shipRay,viewDistance/Math.max(0.1,shipRay.dot(viewDirection)));
 }
@@ -137,7 +136,10 @@ async function initialize(message) {
   ocean.frustumCulled=false;ocean.userData.compact=viewport.compact;scene.add(ocean);
   resize();
   updateObjects(0);
-  await renderer.compileAsync(scene,camera);
+  renderer.setRenderTarget(reflectionTarget);
+  const sceneCompilation=renderer.compileAsync(scene,camera);
+  renderer.setRenderTarget(null);
+  await Promise.all([sceneCompilation,finish.compileAsync()]);
   if(failed)return;
   resize();
   initialized=true;
@@ -158,7 +160,7 @@ function updateObjects(delta) {
   camera.position.set(pointer.x*travel+Math.sin(elapsed*0.12)*0.14,6.8-pointer.y*travel*0.28+Math.sin(elapsed*0.19)*0.08,22-exploration*1.3);
   lookTarget.set(pointer.x*(0.6+exploration*4.3),20-pointer.y*exploration*2.5,-130);
   camera.lookAt(lookTarget);
-  camera.updateMatrixWorld();
+  camera.getWorldDirection(viewDirection);
   timeUniform.value=elapsed;
   const compact=viewport.compact;
   // A shallow elliptical survey circuit changes the visible bow, flank, and engine geometry.
@@ -167,7 +169,7 @@ function updateObjects(delta) {
   ship.group.rotation.set(0.48+Math.sin(orbit*1.3)*0.12,-0.40+Math.sin(orbit)*0.55,-0.13+Math.cos(orbit)*0.075);
   ship.group.scale.setScalar(compact?0.49:0.85);
   positionShip(0,0,shipPath.viewDistance);
-  ship.group.updateMatrixWorld(true);
+  ship.group.updateWorldMatrix(true,false);
   const bounds=projectedShipBounds();
   // Remapping avoids a hard border clamp, which would hold the ship at a corner while its target keeps moving.
   const minScreenX=-shipPath.envelope-bounds.minX;
@@ -207,7 +209,6 @@ function render(delta) {
     ocean.visible=false;motes.visible=false;
     renderer.setRenderTarget(reflectionTarget);
     renderer.render(scene,reflectionCamera);
-    renderer.setRenderTarget(null);
     ocean.visible=true;motes.visible=true;
   }
   finish.render(scene,camera);

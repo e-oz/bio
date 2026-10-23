@@ -1,6 +1,6 @@
 import * as THREE from './vendor/three.module.min.js';
 import { mergeGeometries } from './vendor/BufferGeometryUtils.js';
-import { mantaVertex, mantaFragment, pointVertex, pointFragment } from './scene-shaders.js?v=3d-32';
+import { mantaVertex, mantaFragment, pointVertex, pointFragment } from './scene-shaders.js?v=3d-33';
 
 /** Seeded placement keeps the composition stable across reloads and quality changes. */
 export function randomSequence(seed) {
@@ -37,7 +37,7 @@ function geometryBatch() {
         new THREE.Quaternion().setFromEuler(new THREE.Euler(...rotation)),
         new THREE.Vector3(...scale),
       );
-      const part = geometry.index ? geometry.toNonIndexed() : geometry.clone();
+      const part = new THREE.BufferGeometry().copy(geometry);
       geometry.dispose();
       part.applyMatrix4(transform);
       const group = parts.get(material) || [];
@@ -188,10 +188,13 @@ export function createManta(phase) {
   geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
   geometry.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));
   geometry.setIndex(indices);geometry.computeVertexNormals();
+  geometry.computeBoundingSphere();
+  // The full wingbeat fits this radius while the existing center preserves render sorting.
+  geometry.boundingSphere.radius=3.8;
   const material=new THREE.ShaderMaterial({uniforms:{uTime:{value:0},uPhase:{value:phase}},vertexShader:mantaVertex,fragmentShader:mantaFragment,side:THREE.DoubleSide});
   const group=new THREE.Group();
   const wings=new THREE.Mesh(geometry,material);
-  wings.frustumCulled=false;
+  wings.frustumCulled=true;
   group.add(wings);
   const skin=new THREE.MeshStandardMaterial({color:0x092c38,metalness:0.23,roughness:0.47,emissive:0x03232a,emissiveIntensity:0.3});
   const anatomy=geometryBatch();

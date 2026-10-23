@@ -71,7 +71,7 @@ function startScene() {
   if (!('Worker' in window) || !canvas.transferControlToOffscreen) { useStillScene(); return; }
   starting = true;
   try {
-    worker = new Worker(new URL('./scene-worker.js?v=3d-32', import.meta.url), { type: 'module', name: 'pelagic-orbit' });
+    worker = new Worker(new URL('./scene-worker.js?v=3d-33', import.meta.url), { type: 'module', name: 'pelagic-orbit' });
     worker.addEventListener('error', useStillScene);
     worker.addEventListener('message', event => {
       if (event.data.type === 'ready') {
